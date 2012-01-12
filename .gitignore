@@ -7,3 +7,5 @@ i386_linux26
 *.d
 bin
 lib
+vp/*.so*
+old
