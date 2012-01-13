@@ -3,10 +3,12 @@
 
 #include <iostream>
 
-#include "Integral.h"
+//#include "Integral.h"
 #include "VacuumPolarization.h"
 #include "FinRadCor.h"
 #include "IniRadCor.h"
+#include <ibn/integral.h>
+
 
 using namespace std;
 
@@ -223,7 +225,7 @@ inline double sigma_all_radcor_sing(double s, double mt, double prec)	{
 	if (eps < 0) return 0;
 	double xmax = min(eps,2*60/sqrt(s));
 	double I = 0,integ;
-	integ=dgaus(F_sigma(s,mt),0,xmax,prec);
+	integ=ibn::dgaus(F_sigma(s,mt),0,xmax,prec);
 	I+=integ;
 	return I;
 }
@@ -322,17 +324,17 @@ inline double sigma_all_radcor(double s, double mt, double prec)	{
 	double b = 2*ALPHAPI*(L-1.);
 		
 	ymax = xmax;
-	integ=b*dgaus(F_reg1_sigma(s,mt),0,ymax,prec*10);
+	integ=b*ibn::dgaus(F_reg1_sigma(s,mt),0,ymax,prec*10);
 	I+=integ;
 	//cout << "f_reg1="<< integ << endl;
 	
 	ymax = pow(xmax,b);
-	integ=dgaus(F_reg_x_b_sigma(s,mt),0,ymax,prec);
+	integ=ibn::dgaus(F_reg_x_b_sigma(s,mt),0,ymax,prec);
 	I+=integ;
 	//cout << "f_reg_x_b="<< integ << endl;
 	
 	ymax = sqrt(xmax);
-	integ= b*b *dgaus(F_reg_ln_x_sigma(s,mt),0,ymax,prec)/4.;
+	integ= b*b *ibn::dgaus(F_reg_ln_x_sigma(s,mt),0,ymax,prec)/4.;
 	I+=integ;
 	//cout << "f_reg_lnx="<< integ << endl;
 	//return I;
@@ -341,7 +343,7 @@ inline double sigma_all_radcor(double s, double mt, double prec)	{
 	/*
 	ymax = log(xmax);
 	ymin = log(4*ME/sqrt(s));
-	integ = sq(ALPHAPI)*dgaus( F2_reg_x_sigma(s,b,L,mt),ymin,ymax,prec*100);
+	integ = sq(ALPHAPI)*ibn::dgaus( F2_reg_x_sigma(s,b,L,mt),ymin,ymax,prec*100);
 	I+=integ;
 	*/
 	return I;
@@ -428,13 +430,13 @@ inline  double sigma_total2(double W, double delta, double mt, double prec)	{
 	double result=0;
 	if(W < 2*mt)	{
 	for(int i = 0; i < 2 ; i++)	{
-	result+=dgaus(theSpread,max(2*mt, W + delta * P[i]),   max(2*mt, W + delta * P[i+1]), INTEGRAL_PRECISION);
+	result+=ibn::dgaus(theSpread,max(2*mt, W + delta * P[i]),   max(2*mt, W + delta * P[i+1]), INTEGRAL_PRECISION);
 	//cerr << "result = " << result << ", min=" << W+delta*P[i] << ", max = " << W+delta*P[i+1] << ", P[i]=" <<P[i] <<  endl;
 	//cerr <<  "W = "<< W << " E = " << W/2. << ", mt=" << mt << endl ; 
 	if(INTEGRAL_PRECISION < 0.1) INTEGRAL_PRECISION*=100;
 	}
 	if (result ==0) { 
-	result+=dgaus(theSpread,2*mt,   2*mt+(nsig-1)*delta, INTEGRAL_PRECISION);
+	result+=ibn::dgaus(theSpread,2*mt,   2*mt+(nsig-1)*delta, INTEGRAL_PRECISION);
 	//cerr << " result = " << result << endl;
 	} ;
 	return result/delta/sqrt(2*M_PI);
@@ -443,26 +445,26 @@ inline  double sigma_total2(double W, double delta, double mt, double prec)	{
 	INTEGRAL_PRECISION = prec;
 	if(W > 2*mt+nsig*delta) {
 	result=0;
-	result += dgaus(theSpread,2*mt+nsig*delta, W+2*nsig*delta, prec);
+	result += ibn::dgaus(theSpread,2*mt+nsig*delta, W+2*nsig*delta, prec);
 	INTEGRAL_PRECISION*=100;
-	result += dgaus(theSpread,2*mt, 2*mt + nsig*delta, INTEGRAL_PRECISION);
+	result += ibn::dgaus(theSpread,2*mt, 2*mt + nsig*delta, INTEGRAL_PRECISION);
 	//if (result ==0) { cerr << " result = 0!!!" << endl ; } ;
 	return result/delta/sqrt(2*M_PI);
 	}
 	 
 	/*
 		 if( W > 2*mt + 2*nsig*delta)	{
-		 result += dgaus(theSpread,2*mt+2*nsig*delta, W+6*delta, INTEGRAL_PRECISION);
+		 result += ibn::dgaus(theSpread,2*mt+2*nsig*delta, W+6*delta, INTEGRAL_PRECISION);
 		 INTEGRAL_PRECISION*=100;
-		 result += dgaus(theSpread,2*mt+nsig*delta, 2*mt + 2*nsig*delta , INTEGRAL_PRECISION);
+		 result += ibn::dgaus(theSpread,2*mt+nsig*delta, 2*mt + 2*nsig*delta , INTEGRAL_PRECISION);
 		 INTEGRAL_PRECISION*=100;
-			//result += dgaus(theSpread,2*mt, 2*mt + nsig*delta, INTEGRAL_PRECISION);
+			//result += ibn::dgaus(theSpread,2*mt, 2*mt + nsig*delta, INTEGRAL_PRECISION);
 				return result/delta/sqrt(2*M_PI);
 			} */
 	
-	return 1./(sqrt(2*M_PI)*delta)*dgaus(theSpread,2*mt, W+2*nsig*delta, prec);
+	return 1./(sqrt(2*M_PI)*delta)*ibn::dgaus(theSpread,2*mt, W+2*nsig*delta, prec);
 	}
-	return 1./(sqrt(2*M_PI)*delta)*dgaus(theSpread,2*mt, W+2*nsig*delta, prec);
+	return 1./(sqrt(2*M_PI)*delta)*ibn::dgaus(theSpread,2*mt, W+2*nsig*delta, prec);
 }
 
 
@@ -551,13 +553,13 @@ inline double partial_sigma(double W, double  delta,double mt,double wmin,double
 	double I=0;
 	double relerr1,relerr2,relerr3;
 	double integ=0;
-	integ= dgaus( GFSreg(W,mt,delta), a, b, 100*prec, relerr1);
+	integ= ibn::dgaus( GFSreg(W,mt,delta), a, b, 100*prec, relerr1);
 	I+=integ;
 
-	integ= dgaus( GFSxb(W,mt,delta), a, b, prec, relerr2);
+	integ= ibn::dgaus( GFSxb(W,mt,delta), a, b, prec, relerr2);
 	I+=integ;
 	
-	integ= dgaus( GFSln(W,mt,delta), a, b, 100*prec, relerr3);
+	integ= ibn::dgaus( GFSln(W,mt,delta), a, b, 100*prec, relerr3);
 	I+=integ;
 	return I;
 }

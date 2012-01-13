@@ -1,6 +1,6 @@
 all : draw_sigma
 
-CXXFLAGS=`root-config --cflags` -I./
+CXXFLAGS=`root-config --cflags` -I./ -I$(HOME)/work/
 LIBS=`root-config --libs` -L./lib  -lvp
 
 draw_sigma :  draw_sigma.o

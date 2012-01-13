@@ -229,6 +229,7 @@ inline double VP1777( double S, double mt)
 class VPtab
 {
   std::vector <double> buf;
+  bool isinit;
   public:
   double Emin, Emax,dE;
   VPtab(double emin, double emax,double de)
@@ -236,7 +237,7 @@ class VPtab
     Emin=emin;
     Emax=emax;
     dE=de;
-    Init();
+    isinit =false;
   }
   void Init(void)
   {
@@ -258,10 +259,12 @@ class VPtab
       buf[i]=vp;
     }
     std::cout << " OK\n";
+    isinit = true;
   }
 
   double operator()(double S,double mt)
   {
+    if(!isinit) Init();
     double E=sqrt(S/4);
     if(E>=Emin && E<Emax)
     {

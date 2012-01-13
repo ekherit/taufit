@@ -5,7 +5,8 @@
 #include <complex>
 #include <vector>
 //#include"polylog.h"
-#include "Integral.h"
+//#include "Integral.h"
+#include <ibn/integral.h>
 /* Final states corrections... 
  * \sigma_1 = SIGMA_CONST b(3-b)/2 * Fc*Fr
  * 
@@ -13,6 +14,7 @@
  * hep-ph/012207
  */
 
+#include <TMath.h> 
 
 inline double Fc(double v); // Кулоновское взаимодейсвтие в конечном состоянии 
 inline double vFc(double v); // Fc * v
@@ -83,8 +85,13 @@ inline double Li2(double x)
        return sum;
      */
     //return Li2_array(x);
+    //double my = Li2_int_reg(x);
+    //double cern=TMath::DiLog(x);
+    //cout << x << " " << my << " " << cern <<  " " << (my-cern)/cern << endl;
     return Li2_int_reg(x);
 }
+
+
 /*
    inline double Li2_array(double x)	{
    if(x==1.) return PI2/6.;
@@ -112,21 +119,21 @@ class Polylog_reg	{
 inline double Li2_int(double x)	{
     if(x==1.) return PI2/6.;
     if(x==0) return 0;
-    return dgaus(Polylog(),0,x,PRECISION);
+    return ibn::dgaus(Polylog(),0,x,PRECISION);
 }
 
 inline double Li2_int_reg(double x)	{
     if(x==1.) return PI2/6.;
     if(x==0) return 0;
-    return dgaus(Polylog_reg(),sqrt(1.-x),1.,PRECISION);
+    return ibn::dgaus(Polylog_reg(),sqrt(1.-x),1.,PRECISION);
 }
 
 inline double Li2_int2_reg( double x1, double x2)	{
-    return dgaus(Polylog_reg(),sqrt(1.-x2),sqrt(1.-x1),PRECISION);
+    return ibn::dgaus(Polylog_reg(),sqrt(1.-x2),sqrt(1.-x1),PRECISION);
 }
 
 inline double Li2_int2( double x1, double x2)	{
-    return dgaus(Polylog(),x1,x2,PRECISION);
+    return ibn::dgaus(Polylog(),x1,x2,PRECISION);
 }
 
 class h_sub1 {
@@ -150,7 +157,7 @@ class h_sub2 {
     h_sub2( double zv_, double l_) : zv(zv_), lambda(l_) {}
     comp_t operator()( double etta)	{
 	double t = etta /(1.-etta);
-	comp_t tmp = pow( (1+t)/t, comp_t(0,lambda)) * dgaus_comp( h_sub1(zv,t,lambda) , 0, 1,PRECISION)/ sq(1.-etta);
+	comp_t tmp = pow( (1+t)/t, comp_t(0,lambda)) * ibn::dgaus_comp( h_sub1(zv,t,lambda) , 0, 1,PRECISION)/ sq(1.-etta);
 	//cerr << tmp << endl;
 	return tmp;
     }
@@ -160,7 +167,7 @@ inline double h_int(double v, double mt=MTAU)	{
     //Попытка вычислить h прямым интегрированием.
     double lambda = ALPHA/2./v;
     double zv = ME/mt/v;
-    complex<double> tmp=dgaus_comp(h_sub2(zv,lambda) , 0, 1, PRECISION); 
+    complex<double> tmp=ibn::dgaus_comp(h_sub2(zv,lambda) , 0, 1, PRECISION); 
     return -2.*lambda * tmp.imag();
 }
 inline double h(double v, double mt )	{
@@ -188,66 +195,85 @@ inline double h(double v, double mt )	{
 /* this part creates tables for final state radiative corrections */
 
 
-class FSRC	{
-    double precision;
-    /* 
-     * 	maximum and minimal meaning of tau velocity
-     * 	belong this value direct radiation corrections will be performed
-     */
-    double vmax, vmin; 
-    double dv; //elementary step in velocity (it depends on precision )
-    vector <double> rad_cor_array;
-    double vel(unsigned i )	{	return (vmin  + i*dv); }
-    public:
-    FSRC(void){};
-    FSRC( double p ,double  mx = 0.4, double mn = 0 ) 	{
-	Init(p,mx,mn);		
-    }	
-    void Init( double p,double  mx = 0.3,double  mn = 0) {
-	cout << "Init FSRC table v=("<<mn<<","<<mx<<") ..." << flush ;
-	vmin = mn;
-	vmax = mx;
-	if(vmin <  0 ) { 
-	    cerr << "error: FinRadCor class: vmin below zero." << endl;
-	    exit(1);
-	}
-	if(vmax <= vmin) {
-	    cerr << "error: FinRadCor class: vmax <= vmin in Fin." << endl;
-	    exit(1);
-	}
-	if(p==0) {
-	    cerr << "error: FinRadCor class: precision equal zero." << endl;
-	    exit(1);
-	}
-	precision = p;
-	unsigned N = unsigned (1./precision);
-	double v;
-	dv = (vmax-vmin)/N;
-	rad_cor_array.resize(N+1);
-	for ( unsigned i = 0 ; i< rad_cor_array.size() ; i++)	{
-	    v= vel(i);
-	    rad_cor_array[i] = Fr(v);
-	    //cout << i << ": " << v << ": " << rad_cor_array[i] << endl;
+class FSRC
+{
+  double precision;
+  /* 
+   * 	maximum and minimal meaning of tau velocity
+   * 	belong this value direct radiation corrections will be performed
+   */
+  double vmax, vmin; 
+  double dv; //elementary step in velocity (it depends on precision )
+  vector <double> rad_cor_array;
+  double vel(unsigned i )	{	return (vmin  + i*dv); }
+  bool isinit;
+  public:
+  FSRC(void){};
+  FSRC( double p ,double  mx = 0.4, double mn = 0 )
+  {
+    vmin = mn;
+    vmax = mx;
+    precision = p;
+    isinit=false;
+  }	
 
-	}
-	std::cout << " OK\n";
+  void Init(void)
+  {
+    cout << "Init FSRC table v=("<<vmin<<","<<vmax<<") ..." << flush ;
+    //vmin = mn;
+    //vmax = mx;
+    if(vmin <  0 )
+    { 
+      cerr << "error: FinRadCor class: vmin below zero." << endl;
+      exit(1);
     }
-    double operator()(double v)	{
-	if(v >= vmin && v <=vmax) {
-	    double x=(v-vmin)/dv;
-	    size_t i=size_t(x);
-	    double r;
-	    if(i<rad_cor_array.size()-1)    {
-		r=rad_cor_array[i] + (x - double(i))*(rad_cor_array[i+1]-rad_cor_array[i]);
-	    }
-	    else {
-		r=rad_cor_array[i];
-	    }
-	    return  r;
-	} else {
-	    return vFc(v)*Fr(v);
-	}
+    if(vmax <= vmin)
+    {
+      cerr << "error: FinRadCor class: vmax <= vmin in Fin." << endl;
+      exit(1);
     }
+    if(precision==0)
+    {
+      cerr << "error: FinRadCor class: precision equal zero." << endl;
+      exit(1);
+    }
+    unsigned N = unsigned (1./precision);
+    double v;
+    dv = (vmax-vmin)/N;
+    rad_cor_array.resize(N+1);
+    for ( unsigned i = 0 ; i< rad_cor_array.size() ; i++)
+    {
+      v= vel(i);
+      rad_cor_array[i] = Fr(v);
+      //cout << i << ": " << v << ": " << rad_cor_array[i] << endl;
+
+    }
+    isinit =true;
+    std::cout << " OK\n";
+  }
+
+  double operator()(double v)
+  {
+    if(!isinit) Init();
+    if(v >= vmin && v <=vmax)
+    {
+      double x=(v-vmin)/dv;
+      size_t i=size_t(x);
+      double r;
+      if(i<rad_cor_array.size()-1)
+      {
+        r=rad_cor_array[i] + (x - double(i))*(rad_cor_array[i+1]-rad_cor_array[i]);
+      }
+      else
+      {
+        r=rad_cor_array[i];
+      }
+      return  r;
+    } else
+    {
+      return vFc(v)*Fr(v);
+    }
+  }
 };
 
 class FinRadCor	{
