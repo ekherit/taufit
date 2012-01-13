@@ -36,7 +36,7 @@ TROOT root("draw_tau_cross_section","Draw tau cross section", initfuncs);
 int main(int argc, char ** argv)
 {
 	TApplication theApp("tau", &argc, argv);
-  bool issigma=true;
+  bool issigma=false;
   bool isdilog=true;
   if(issigma)
   {
@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
   if(isdilog)
   {
     TCanvas * c = new TCanvas("dilog","dilog");
-    double NN=100000.;
+    double NN=1e6;
     TH1D * h = new TH1D("dilog","dilog",200,-20,0);
     for(double i = 0;i<NN;++i)
     {
@@ -73,6 +73,23 @@ int main(int argc, char ** argv)
       h->Fill(log(diff)/log(10));
     }
     h->Draw();
+    cout << "Measure time for my dilog..." << endl;
+    ibn::timer timer;
+    for(double i = 0;i<NN;++i)
+    {
+      double x = i/NN;
+      Li2_int_reg(x);
+    }
+    double myt=timer.elapsed();
+    cout << "Measure time for my dilog..." << endl;
+    timer.restart();
+    for(double i = 0;i<NN;++i)
+    {
+      double x = i/NN;
+      TMath::DiLog(x);
+    }
+    double cernt=timer.elapsed();
+    cout << "my dilog time = "<<myt << ", cern dilog time = " << cernt << endl;
   }
   theApp.Run();
   return 0;
