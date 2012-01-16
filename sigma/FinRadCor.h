@@ -4,8 +4,6 @@
 #include <iostream>
 #include <complex>
 #include <vector>
-//#include"polylog.h"
-//#include "Integral.h"
 #include <ibn/integral.h>
 /* Final states corrections... 
  * \sigma_1 = SIGMA_CONST b(3-b)/2 * Fc*Fr
@@ -56,7 +54,8 @@ inline double Fr(double v)	{
 
 
 
-inline double S(double v)	{
+inline double S(double v)
+{
     if(v < 0.0001) return -4;
     return 1./v * ( - PI2/2. + (1.+v*v)*( PI2/6.0 + log((1.+v)/2.0)*log((1.+v)/(1.-v)) + 
 		2. * ( Li2((1.-v)/(1.+v)) + Li2((1.+v)/2.) - Li2((1.-v)/2.) -
@@ -77,62 +76,51 @@ inline double S(double v)	{
 
 inline double Li2(double x)	
 {
-    /*
-       double sum=0;
-       for(int i = 1; i<max; i++)	{
-       sum+=pow(x,i)/(i*i);
-       }
-       return sum;
-     */
-    //return Li2_array(x);
-    //double my = Li2_int_reg(x);
-    //double cern=TMath::DiLog(x);
-    //cout << x << " " << my << " " << cern <<  " " << (my-cern)/cern << endl;
-    return Li2_int_reg(x);
+    //return Li2_int_reg(x); //use my integrall
+    return TMath::DiLog(x); //use standart function
 }
 
 
-/*
-   inline double Li2_array(double x)	{
-   if(x==1.) return PI2/6.;
-   int n1 = (int)floor(x*POLYLOG_ARRAY_SIZE);
-   int n2 = n1+1;
-   return PolylogArray[n1]+(PolylogArray[n2]-PolylogArray[n1])*(x-double(n1)/POLYLOG_ARRAY_SIZE);
-   }
- */
 class Polylog	{
     public:
 	Polylog(void){}
-	double operator() (double x)	{
+	double operator() (double x)
+  {
 	    return -log(1.-x)/x;
 	}	
 };
 
-class Polylog_reg	{
+class Polylog_reg
+{
     public:
 	Polylog_reg(void){}
-	double operator() (double y)	{
+	double operator() (double y)
+  {
 	    return -4.*y/(1.-y*y)*log(y);
 	}	
 };
 
-inline double Li2_int(double x)	{
+inline double Li2_int(double x)
+{
     if(x==1.) return PI2/6.;
     if(x==0) return 0;
     return ibn::dgaus(Polylog(),0,x,PRECISION);
 }
 
-inline double Li2_int_reg(double x)	{
+inline double Li2_int_reg(double x)
+{
     if(x==1.) return PI2/6.;
     if(x==0) return 0;
     return ibn::dgaus(Polylog_reg(),sqrt(1.-x),1.,PRECISION);
 }
 
-inline double Li2_int2_reg( double x1, double x2)	{
+inline double Li2_int2_reg( double x1, double x2)
+{
     return ibn::dgaus(Polylog_reg(),sqrt(1.-x2),sqrt(1.-x1),PRECISION);
 }
 
-inline double Li2_int2( double x1, double x2)	{
+inline double Li2_int2( double x1, double x2)
+{
     return ibn::dgaus(Polylog(),x1,x2,PRECISION);
 }
 
@@ -170,24 +158,26 @@ inline double h_int(double v, double mt=MTAU)	{
     complex<double> tmp=ibn::dgaus_comp(h_sub2(zv,lambda) , 0, 1, PRECISION); 
     return -2.*lambda * tmp.imag();
 }
-inline double h(double v, double mt )	{
-    double H0 =  log(mt*ALPHA/ME) + GAMMA_E + 1./6.;
-    if(v==0) return H0;
-    double z = PIALPHA /v;
-    double h0 = (1. - (1.+z)*exp(-z))/(1. - exp(-z));
-    double b;
 
-    if( v <= 0.01)  {
-	b = 0.998929  - 7.71335 *v + 1033.43*v*v;
-	return b*h0*H0;
-    } 
-    if( v <= 0.04)	{
-	b = 0.927085 + 9.46920 * v  - 31.2432*v*v;
-	return b*h0*H0;
-    }
-    if(v>0.04) return h0*(log(2*mt*v/ME) - 5./6.);
-    //				else return h0*(log(mt*ALPHA/ME) + GAMMA_E +1./6.); 
-    return 0;
+inline double h(double v, double mt )
+{
+  double H0 =  log(mt*ALPHA/ME) + GAMMA_E + 1./6.;
+  if(v==0) return H0;
+  double z = PIALPHA /v;
+  double h0 = (1. - (1.+z)*exp(-z))/(1. - exp(-z));
+  double b;
+
+  if( v <= 0.01)  {
+    b = 0.998929  - 7.71335 *v + 1033.43*v*v;
+    return b*h0*H0;
+  } 
+  if( v <= 0.04)	{
+    b = 0.927085 + 9.46920 * v  - 31.2432*v*v;
+    return b*h0*H0;
+  }
+  if(v>0.04) return h0*(log(2*mt*v/ME) - 5./6.);
+  //				else return h0*(log(mt*ALPHA/ME) + GAMMA_E +1./6.); 
+  return 0;
 }
 
 

@@ -36,8 +36,8 @@ TROOT root("draw_tau_cross_section","Draw tau cross section", initfuncs);
 int main(int argc, char ** argv)
 {
 	TApplication theApp("tau", &argc, argv);
-  bool issigma=false;
-  bool isdilog=true;
+  bool issigma=true;
+  bool isdilog=false;
   if(issigma)
   {
     double sigma_W = 1.5;//beam energy spread in MeV
@@ -49,8 +49,8 @@ int main(int argc, char ** argv)
     for(unsigned i=0;i<N;++i)
     {
       double E = Emin + dE*i; //calculate beam energy
-      double sigma = sigma_total(2*E, sigma_W,1777,1e-5);
-      sigma_total_g->SetPoint(i,E,sigma);
+      double sigma = sigma_total(2*E, sigma_W,MTAU,1e-5);
+      sigma_total_g->SetPoint(i,E-MTAU,sigma);
     }
     sigma_total_g->SetTitle("Tau cross section");
     sigma_total_g->Draw("ac");
