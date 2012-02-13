@@ -29,8 +29,7 @@ using namespace std;
 	PRECISION=1e-3;
 	cout << "PRESISION = " << PRECISION << endl;
 	
-	//ifstream file("BESTAU-6.dat");
-	ifstream file("BESTAU.dat");
+	ifstream file("test.dat");
 	if(!file) { cerr << "cant open file BESTAU.dat" << endl; exit(0);}
 	cout << "Reading BES data...\n";
 	FillData(file);

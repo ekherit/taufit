@@ -42,7 +42,7 @@ using namespace std;
 int main(int argc, char ** argv)
 {
 	TApplication theApp("tau", &argc, argv);
-	ifstream file("BESTAU-6.dat");
+	ifstream file("test.dat");
 	if(!file) { cerr << "cant open file BESTAU.dat" << endl; exit(0);}
 	cout << "Reading BES data...\n";
 	FillData(file);
