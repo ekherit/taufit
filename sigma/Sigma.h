@@ -10,6 +10,8 @@
 #include <ibn/integral.h>
 
 
+extern unsigned DEBUG;
+
 using namespace std;
 
 inline   double sigma_total(double W, double delta, double mt, double prec);
@@ -108,7 +110,11 @@ bool test_bad(double x) {
 
 
 
-inline double sigma_tree_fc_vp_fsrc( double s, double mt)	{
+inline double sigma_tree_fc_vp_fsrc( double s, double mt)	
+{
+  double sigma=0;
+  if(DEBUG==1) cout << "s="<<s <<", mt=" << mt << std::endl;
+	if(isnan(s) || isinf(s)) std::cout << "Bad s=" << s << std::endl;
 // Рабочая функция для интегрирования. Учтены все поправки в конечном сосстоянии и поляризация вакуума.
 	if ( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
@@ -118,7 +124,9 @@ inline double sigma_tree_fc_vp_fsrc( double s, double mt)	{
 	if(isnan(v) || isinf(v)) std::cout << "vFc("<<v<<") = " << vfc << endl;
 	if(test_bad(vp)) std::cout << "vp("<<sqrt(s/4) <<") = " << vp << endl;
 	if(test_bad(frc)) std::cout << "fsrc("<<v<<") = " << frc << endl;
-	return SIGMA_CONST*(3.-v*v)/(2*s)*vFc(v)*VP(s,mt)*fsrc(v);
+	sigma= SIGMA_CONST*(3.-v*v)/(2*s)*vFc(v)*VP(s,mt)*fsrc(v);
+  if(isnan(sigma) || isinf(sigma)) sigma=0;
+  return sigma;
 }
 
 // Bukin's sequence 

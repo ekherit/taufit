@@ -297,11 +297,16 @@ static VPtab VPT(1820,1910,0.001);  //расширил диапазон и добавил точности.
 
 static inline double VP(double S, double mt=MTAU)
 {
+  if(S<0 || isnan(S) || isinf(S))
+  {
+    return 1e300;
+  }
   double E = sqrt(S)/2.0;
   if(E<1777) return 0;
   if(E<1777+47) return VP1777(S,mt);
   if(E>=VPT.Emin && E<VPT.Emax)    return VPT(S,mt);
   std::cerr << "Using VP\n";
+  std::cerr << S << " " << E << " " << "mt=" << mt << std::endl;
   return Vp(S);
 }
 

@@ -4,11 +4,15 @@
 #include <TMinuit.h>
 #include <TGraphErrors.h>
 #include <TRandom.h>
+#include <TF1.h>
 #include <TH1F.h>
 #include <TH2F.h>
+#include <algorithm>
 
 #include <sigma/Sigma.h>
 
+
+extern unsigned DEBUG;
 const double MTAUSHIFT = 1777.0;
 //double PRECISION = 1e-3;
 double DDelta=1;
@@ -47,6 +51,7 @@ const int MAX_POINT_NUMBER=1024;
 double DELTA[MAX_POINT_NUMBER]; // Energy distribution
 int    EVENT[MAX_POINT_NUMBER]; //amount of registred event
 double ENERGY[MAX_POINT_NUMBER]; //energy of beam
+double ENERGY_ERROR[MAX_POINT_NUMBER]; //energy error
 double EFCOR[MAX_POINT_NUMBER]; //corrections to efisiency
 double LUM[MAX_POINT_NUMBER];
 
@@ -78,7 +83,46 @@ void FillData(istream & file)
 	POINT_NUMBER = i;
 	cout << "POINT_NUMBER=" << POINT_NUMBER << endl;
 	double lum=0;
-	for(int i = 0; i < POINT_NUMBER; i++)	{
+	for(int i = 0; i < POINT_NUMBER; i++)
+  {
+		 lum+= LUM[i];
+	}
+	cout << "TOTAL LUMINOCITY=" <<lum << endl;
+}
+
+void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi resonance */)
+{
+	double tmp;
+  double Sw; 
+  double dSw;
+  double W;
+  double dW;
+  double lum;
+  double lum_cor;
+  unsigned Ntt; // Number of tau events
+  unsigned Nee;
+  unsigned Ngg;
+	int colw=20;
+	cout << setw(6) << "POINT"<<setw(colw)<<"E[MeV]"<<setw(colw) << "DELTA[MeV]" << setw(colw) << "LUM[1/pb]"  << setw(6) << "N"   << setw(5) << "R" << endl; 
+	int i;
+	for(i=0; !file.eof(); i++)
+  {
+    file >> tmp >> lum >> W >> dW >> Sw >> dSw  >>  Ntt >> Nee >> Ngg;
+    EVENT[i] = Ntt;
+    ENERGY[i] = W/2;
+    ENERGY_ERROR[i]=dW/2;
+    DELTA[i]  = sigmaW_psi2s*pow(W/3686.,2);
+		LUM[i] = lum/=1000; //перестчет из обратнрых набобарнов в обратные пикобарны
+    EFCOR[i] = 1;
+    file.ignore(10000,'\n');
+		cout << setw(6) << i+1 << setw(colw) << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(6) << EVENT[i] << setw(5) << EFCOR[i] << endl;
+		if(file.eof()) break;
+	}
+	POINT_NUMBER = i;
+	cout << "POINT_NUMBER=" << POINT_NUMBER << endl;
+  lum=0;
+	for(int i = 0; i < POINT_NUMBER; i++)
+  {
 		 lum+= LUM[i];
 	}
 	cout << "TOTAL LUMINOCITY=" <<lum << endl;
@@ -89,7 +133,7 @@ double InPol(int N, double *X, double *Y, double x )	{
 	int imax=N;
 	for( int i = 0; i < N; i++)	{
 		if ( x >= X[i] && X[i] > X[imin]) imin=i; 
-		if ( x < X[i]  && X[i] < X[imax]) imax = i;
+		if ( x <= X[i]  && X[i] < X[imax]) imax = i;
 	}
 	if(imin == imax && x < X[imin]) 	{
 		if(imax <N-1) imax++;
@@ -99,8 +143,45 @@ double InPol(int N, double *X, double *Y, double x )	{
 		if(imin <N-1) imin++;
 		else imin --;
 	}
+  if(imin==imax) return Y[imin];
 	return Y[imin] + (x - X[imin])/(X[imax] - X[imin] )*(Y[imax] - Y[imin]);
 }
+
+double InPol2(unsigned N, double *X, double *Y, double x )
+{
+  double x1=-std::numeric_limits<double>::max();
+  double x2=+std::numeric_limits<double>::max();
+  double y1,y2,y;
+  bool f1=false, f2=false; //found something flag
+  for(unsigned i=0;i<N;++i)
+  {
+    //find maximal value x1 that lower then x
+    if(x>=X[i] && X[i]>x1)
+    {
+      x1=X[i];
+      y1=Y[i];
+      f1=true;
+    }
+    //find minimal value x2 that higher then x
+    if(x<=X[i] && X[i]<x2)
+    {
+      x2=X[i];
+      y2=Y[i];
+      f2=true;
+    }
+  }
+  //if found something good then calculate the result
+  if(f1  && f2) y = x1==x2 ? y1 :y1+(x-x1)*(y2-y1)/(x2-x1);
+  if(!f1 && f2) y=y2;
+  if(!f2 && f1) y=y1;
+  if(!f1 && !f2) 
+  {
+    cerr << "ERROR: Unable to found interpolation for: " << x << endl;
+  }
+  //cout << "x1="<< x1 << " y1="<<y1 << ", x2="<<x2 << ", y2="<<y2 << ", x=" << x << ", y=" << y << endl;
+  return y;
+}
+
 
 double Delta( double E)	{
 	/*
@@ -122,6 +203,8 @@ double Delta( double E)	{
 	*/
 	return InPol(POINT_NUMBER, ENERGY, DELTA, E);
 }
+
+
 static double FCN_PREVIOS_VALUE=1000;
 void Lfcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 {  
@@ -130,40 +213,45 @@ void Lfcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 	 double mu;
 	 double sigma;
 	 double fac;
-	 for ( int i = 0; i<POINT_NUMBER; i++)	{
-	     sigma = sigma_total(2*ENERGY[i], DELTA[i], par[0]+MTAUSHIFT,PRECISION);
-	     mu = LUM[i] * ( par[1] * EFCOR[i] * sigma + par[2]);
-	     if(mu <= 0 )	{
-		 cerr << "Error: mu < 0\n";
-		 cerr << i  << " " << ENERGY[i] << " mu=" << mu << " sigma=" << sigma << endl;
-		 cerr << "mtau="<<par[0]<<"  eps=" << par[1] << "  bg = " << par[2] << endl;
-		 f =  1e10*( 1 - mu);
-		 return;
-	     }
-	     /*
-		if(sigma == 0) {	
-		cerr.precision(12);
-		cerr << i << " " << ENERGY[i] <<  ", mu = " << mu ;
-		cerr << ", Sigma = " << sigma  << endl;
-		cerr << "trying to increez accuracy" << endl;
-		sigma = sigma_total(2*ENERGY[i], DELTA[i], par[0]+MTAUSHIFT,PRECISION/1000.);
-		mu = LUM[i] * ( par[1] * EFCOR[i] * sigma + par[2]);
-		if( sigma <= 0) {
-		cerr << " Sigma is steel 
-		}
-		exit(1);
-		}
+	 for ( int i = 0; i<POINT_NUMBER; i++)
+   {
+     sigma = sigma_total(2*ENERGY[i], DELTA[i], par[0]+MTAUSHIFT,PRECISION);
+     mu = LUM[i] * ( fabs(par[1])*EFCOR[i] * sigma + fabs(par[2]));
+     if(mu <= 0 )
+     {
+       cerr << "Error: mu < 0\n";
+       cerr << i  << " " << ENERGY[i] << " mu=" << mu << " sigma=" << sigma << endl;
+       cerr << "mtau="<<par[0]<<"  eps=" << par[1] << "  bg = " << par[2] << endl;
+       f =  1e300*( 1 - mu);
+       return;
+     }
+     
+     //if(sigma == 0)
+     //{	
+     //  cerr.precision(12);
+     //  cerr << i << " " << ENERGY[i] <<  ", mu = " << mu ;
+     //  cerr << ", Sigma = " << sigma  << endl;
+     //  cerr << "trying to increez accuracy" << endl;
+     //  sigma = sigma_total(2*ENERGY[i], DELTA[i], par[0]+MTAUSHIFT,PRECISION/1000.);
+     //  mu = LUM[i] * ( par[1] * EFCOR[i] * sigma + par[2]);
+     //  if( sigma <= 0)
+     //  {
+     //    cerr << " Sigma is steel below zeor";
+     //  }
+     //  exit(1);
+     //}
 
-	     if ( EVENT[i] < 0) {
-		 cerr << "ERROR: number of event is low the zero" << endl;
-		 exit(1);
-	     }*/
-	     if(EVENT[i] <= 50) fac = 	log( factorial(EVENT[i]) );
-	     else fac = EVENT[i]*log(EVENT[i])-EVENT[i];
-	     LL+= EVENT[i] * log(mu) - mu -  fac ;
-	     cout.precision(6);
-	     //cout << ENERGY[i]<<": "<<sigma<<", "<<DELTA[i] <<", pars: "<<par[0]<<", "<<par[1]<<", "<<par[2]<< ": mu="<<mu << endl;
-	 }
+     if ( EVENT[i] < 0)
+     {
+       cerr << "ERROR: number of event is low the zero" << endl;
+       exit(1);
+     }
+     if(EVENT[i] <= 50) fac = 	log( factorial(EVENT[i]) );
+     else fac = EVENT[i]*log(EVENT[i])-EVENT[i];
+     LL+= EVENT[i] * log(mu) - mu -  fac ;
+     cout.precision(6);
+     //cout << ENERGY[i]<<": "<<sigma<<", "<<DELTA[i] <<", pars: "<<par[0]<<", "<<par[1]<<", "<<par[2]<< ": mu="<<mu << endl;
+   }
 	 f= -LL;
 	 FCN_PREVIOS_VALUE = f;
 }
@@ -190,7 +278,9 @@ TGraph * SigmaGraph(double mtau, double  EFFECT, double BG, int NN = 40)	{
 	return new TGraph(NN,EE,S);
 }
 */
-TGraph * SigmaGraph(double MTAU, double  EFFECT, double BG, int NN )	{
+TGraph * SigmaGraph(double MTAU, double  EFFECT, double BG, int NN )
+{
+  cout << "Generate graph for data" << endl;
 	if(NN > MAX_POINT_NUMBER) NN=MAX_POINT_NUMBER;
 	double S[MAX_POINT_NUMBER];
 	double EE[MAX_POINT_NUMBER];
@@ -199,11 +289,18 @@ TGraph * SigmaGraph(double MTAU, double  EFFECT, double BG, int NN )	{
 	double lum=1, efcor = 1,delta = 1;
 	for(int i = 0; i< POINT_NUMBER; i++) if(EEmin > ENERGY[i]) EEmin = ENERGY[i];
 	for(int i = 0; i< POINT_NUMBER; i++) if(EEmax < ENERGY[i]) EEmax = ENERGY[i];
-	for(int i = 0; i < NN; i++)	{
+  EEmin-=5;
+  EEmax+=5;
+  //calculate parameters for DELTA
+  TF1 f("fun_spread","[0]*x*x");
+  f.SetParameter(0,0);
+  TGraph g(POINT_NUMBER, ENERGY,DELTA);
+  g.Fit("fun_spread","goff");
+  double Spar=f.GetParameter(0);
+	for(int i = 0; i < NN; i++)
+  {
 		EE[i] = (EEmin + (EEmax - EEmin)/(NN-1)*i);
-		//lum   = InPol(POINT_NUMBER, ENERGY,  LUM, EE[i]);
-		//efcor = InPol(POINT_NUMBER, ENERGY, EFCOR, EE[i]);
-		delta = InPol(POINT_NUMBER, ENERGY, DELTA, EE[i]);
+    delta = Spar*sq(EE[i]);
 		S[i]=(EFFECT*sigma_total(2*EE[i],delta,MTAU+MTAUSHIFT,0.0001) + BG);
 	}
 	return new TGraph(NN,EE,S);
@@ -265,22 +362,21 @@ TGraph * SigmaGraphNew(double MTAU, double  EFFECT, double BG, int NN )	{
 //	return gr;
 //}
 
-TGraphErrors * DataGraph(const char * title)	{
+TGraphErrors * DataGraph(const char * title)
+{
 	double S[MAX_POINT_NUMBER];
 	double Ser[MAX_POINT_NUMBER];
-	double Wer[MAX_POINT_NUMBER];
-	double E[MAX_POINT_NUMBER];
-	for(int i = 0; i < POINT_NUMBER; i++ )	{
-		Wer[i] = 0;
+	for(int i = 0; i < POINT_NUMBER; i++ )
+  {
 		S[i] = EVENT[i]/LUM[i];
 		Ser[i] = sqrt(EVENT[i])/LUM[i];
-		E[i] = 2*ENERGY[i];
+    cout << i << " " << ENERGY[i] << " " << LUM[i] << " " << EVENT[i] << " " << S[i] << endl;
 	}
-	TGraphErrors * gr = new TGraphErrors(POINT_NUMBER, ENERGY,S,Wer,Ser);
+	TGraphErrors * gr = new TGraphErrors(POINT_NUMBER, ENERGY,S,ENERGY_ERROR,Ser);
 	gr->SetTitle(title);
-	gr->Draw("A*");	
-	gr->GetXaxis()->SetTitle("W/2 [MeV]");
-	gr->GetYaxis()->SetTitle("\\frac{N}{L} [pb]");
+	//gr->Draw("A*");	
+	//gr->GetXaxis()->SetTitle("E, MeV");
+	//gr->GetYaxis()->SetTitle("\\frac{N}{L} [pb]");
 	return gr;
 }
 

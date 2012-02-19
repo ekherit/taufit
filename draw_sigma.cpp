@@ -32,6 +32,7 @@ TROOT root("draw_tau_cross_section","Draw tau cross section", initfuncs);
 
 // For measurement calculation speed.
 #include <ibn/timer.h>
+unsigned DEBUG=0;
 
 int main(int argc, char ** argv)
 {
@@ -41,15 +42,15 @@ int main(int argc, char ** argv)
   if(issigma)
   {
     double sigma_W = 1.5;//beam energy spread in MeV
-    double Emin = 1770; //min beam energy in MeV
-    double Emax = 1800; //max beam energy in MeV
+    double Emin = 1750; //min beam energy in MeV
+    double Emax = 1810; //max beam energy in MeV
     double dE = 0.1;    //energy step in MeV
     unsigned N = unsigned(fabs(Emax-Emin)/dE); //number of points in graph
     TGraph * sigma_total_g = new TGraph(N);
     for(unsigned i=0;i<N;++i)
     {
       double E = Emin + dE*i; //calculate beam energy
-      double sigma = sigma_total(2*E, sigma_W,MTAU,1e-5);
+      double sigma = sigma_total(2*E, sigma_W,MTAU,1e-10);
       sigma_total_g->SetPoint(i,E-MTAU,sigma);
     }
     sigma_total_g->SetTitle("Tau cross section");
