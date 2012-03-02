@@ -8,4 +8,6 @@ i386_linux26
 bin
 lib
 vp/*.so*
+vp/*.a
 old
+*.txt

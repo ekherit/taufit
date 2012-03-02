@@ -1,19 +1,22 @@
-all : draw_sigma
+all : draw_sigma taufit
 
 CXXFLAGS=`root-config --cflags` -I./ -I$(HOME)/work/
-LIBS= `root-config --libs` -lMinuit -L./lib   -lvp
+LIBS= `root-config --libs` -lMinuit 
 
-draw_sigma :  draw_sigma.o
-			g++  $(LIBS) draw_sigma.o -o bin/draw_sigma
+draw_sigma :  draw_sigma.o libvp.a
+			g++ draw_sigma.o vp/libvp.a $(LIBS)   -o bin/draw_sigma
 
 draw_sigma.o :  draw_sigma.cpp
 			g++ $(CXXFLAGS) -c draw_sigma.cpp -o draw_sigma.o
 
-fit :  fit.o
-			g++ fit.o  $(LIBS) -o bin/fit
+taufit :  fit.o libvp.a
+			g++ fit.o  vp/libvp.a $(LIBS)  -o $(HOME)/work/bin/taufit
 
 fit.o :  fit.cpp
 			g++ $(CXXFLAGS) -c fit.cpp -o fit.o
 
+libvp.a :
+			make -C vp
+			
 clean :
-				rm *.o
+				rm -f *.o rm *.so* *.a

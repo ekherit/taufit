@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
 	ifstream file(filename.c_str());
 	if(!file) { cerr << "cant open file " << filename << endl; exit(0);}
 	cout << "Reading data from file " << filename << endl;
-	FillData2(file,1.6);
+	FillData2(file,1.43);
 	TGraphErrors * data_gr = DataGraph("r_{i} \\varepsilon \\sigma(e^{+}e^{-}\\rightarrow \\tau^{+}\\tau^{-}) + \\sigma_{B}");
 	
 	TMinuit *minuit = new TMinuit(3); 
@@ -59,17 +59,16 @@ int main(int argc, char ** argv)
 	Int_t ierflg = 0;
 
  	minuit->SetErrorDef(0.5);
-	minuit->mnparm( 0, "MTAU", 0,   0.2,   -1,    +1, ierflg);
+	minuit->mnparm( 0, "MTAU", 0,   0.2,   0,    0, ierflg);
 	minuit->mnparm( 1, "EFF",  0.1,  0.1,  0,   1, ierflg);
-	minuit->mnparm( 2, "BG",    0,  0.4,   0,   20 , ierflg);
+	minuit->mnparm( 2, "BG",    0,  0.4,   0,   100 , ierflg);
 	arglist[0]=2;
 	minuit->mnexcm("SET STR", arglist ,1,ierflg);
 	minuit->Migrad();
-	//minuit->mnhess();
-	//minuit->mnhess();
-	//minuit->mnmnos();
+	minuit->mnhess();
+	minuit->mnmnos();
   cout << "Fit is finished" << endl;
-  //minuit->mnexcm("MINOS", arglist ,1,ierflg);
+  minuit->mnexcm("MINOS", arglist ,1,ierflg);
 	// Print results
 	Double_t amin,edm,errdef;
 	Int_t nvpar,nparx,icstat;
@@ -87,6 +86,8 @@ int main(int argc, char ** argv)
 	data_gr->Draw("ap");
 	TGraph * sigma_gr = SigmaGraph(par[0],par[1],par[2],100);
 	sigma_gr->Draw("c");
+  data_gr->GetXaxis()->SetTitle("E, MeV");
+  data_gr->GetYaxis()->SetTitle("#sigma_{obs}, pb");
 
   theApp.Run();
   return 0;
