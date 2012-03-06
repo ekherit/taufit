@@ -13,7 +13,7 @@
 
 
 extern unsigned DEBUG;
-const double MTAUSHIFT = 1777.0;
+const double MTAUSHIFT = MTAU_PDG2011;
 //double PRECISION = 1e-3;
 double DDelta=1;
 
@@ -115,8 +115,8 @@ void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi reson
 		LUM[i] = lum/=1000; //перестчет из обратнрых набобарнов в обратные пикобарны
     EFCOR[i] = 1;
     file.ignore(10000,'\n');
-		cout << setw(6) << i+1 << setw(colw) << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(6) << EVENT[i] << setw(5) << EFCOR[i] << endl;
 		if(file.eof()) break;
+		cout << setw(6) << i+1 << setw(colw) << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(6) << EVENT[i] << setw(5) << EFCOR[i] << endl;
 	}
 	POINT_NUMBER = i;
 	cout << "POINT_NUMBER=" << POINT_NUMBER << endl;
@@ -204,6 +204,10 @@ double Delta( double E)	{
 	return InPol(POINT_NUMBER, ENERGY, DELTA, E);
 }
 
+inline double logfac(double n)
+{
+  return n*log(n) - n + (log(n*(1.+4.*n*(1.+2.*n))))/6. + LOGPI2;
+}
 
 static double FCN_PREVIOS_VALUE=1000;
 void Lfcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
@@ -216,7 +220,7 @@ void Lfcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 	 for ( int i = 0; i<POINT_NUMBER; i++)
    {
      sigma = sigma_total(2*ENERGY[i], DELTA[i], par[0]+MTAUSHIFT,PRECISION);
-     mu = LUM[i] * ( fabs(par[1])*EFCOR[i] * sigma + fabs(par[2]));
+     mu = LUM[i] *  (fabs(par[1])*EFCOR[i] * fabs(sigma) + fabs(par[2]));
      if(mu <= 0 )
      {
        cerr << "Error: mu < 0\n";
@@ -246,8 +250,10 @@ void Lfcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
        cerr << "ERROR: number of event is low the zero" << endl;
        exit(1);
      }
-     if(EVENT[i] <= 50) fac = 	log( factorial(EVENT[i]) );
-     else fac = EVENT[i]*log(EVENT[i])-EVENT[i];
+     //if(EVENT[i] <= 50) fac = 	log( factorial(EVENT[i]) );
+     //else fac = EVENT[i]*log(EVENT[i])-EVENT[i];
+     if(EVENT[i] <= 5) fac = 	log( factorial(EVENT[i]) );
+     else fac = logfac(EVENT[i]);
      LL+= EVENT[i] * log(mu) - mu -  fac ;
      cout.precision(6);
      //cout << ENERGY[i]<<": "<<sigma<<", "<<DELTA[i] <<", pars: "<<par[0]<<", "<<par[1]<<", "<<par[2]<< ": mu="<<mu << endl;
@@ -280,7 +286,8 @@ TGraph * SigmaGraph(double mtau, double  EFFECT, double BG, int NN = 40)	{
 */
 TGraph * SigmaGraph(double MTAU, double  EFFECT, double BG, int NN )
 {
-  cout << "Generate graph for data" << endl;
+  BG = fabs(BG);
+  EFFECT = fabs(EFFECT);
 	if(NN > MAX_POINT_NUMBER) NN=MAX_POINT_NUMBER;
 	double S[MAX_POINT_NUMBER];
 	double EE[MAX_POINT_NUMBER];

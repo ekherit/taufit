@@ -1,7 +1,7 @@
 all : draw_sigma taufit
 
-CXXFLAGS=`root-config --cflags` -I./ -I$(HOME)/work/
-LIBS= `root-config --libs` -lMinuit 
+CXXFLAGS=`root-config --cflags` -I./ -I$(HOME)/work/ -std=c++0x
+LIBS= `root-config --libs` -lMinuit -lboost_program_options
 
 draw_sigma :  draw_sigma.o libvp.a
 			g++ draw_sigma.o vp/libvp.a $(LIBS)   -o bin/draw_sigma

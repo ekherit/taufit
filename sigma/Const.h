@@ -1,7 +1,7 @@
 #ifndef IBN_CONST_H
 #define IBN_CONST_H
 
-#include <math.h>
+#include <cmath>
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	/* pi */
@@ -23,8 +23,11 @@ static const double ALPHA=1./137.03599976; //fine structure constant e^2/4pi
 static const double ALPHAPI=ALPHA/M_PI; //\alpha / \pi
 static const double PIALPHA=M_PI*ALPHA; 
 
+
 static const double GAMMA_E = 0.577215664901532861; //eiler number
 static const double PI2 = M_PI * M_PI;  // \pi^2
+static const double LOGPI = log(M_PI);
+static const double LOGPI2 = log(M_PI)*0.5;
 
 static const double LAMBDAE = 3.861592642e-11;//cm
 static const double SIGMA_TOMSON = 0.665245854; //barn

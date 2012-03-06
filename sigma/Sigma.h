@@ -3,11 +3,10 @@
 
 #include <iostream>
 
-//#include "Integral.h"
+#include <ibn/integral.h>
 #include "VacuumPolarization.h"
 #include "FinRadCor.h"
 #include "IniRadCor.h"
-#include <ibn/integral.h>
 
 
 extern unsigned DEBUG;
@@ -25,19 +24,23 @@ static bool IS_VP_COR=true;
 static bool NO_INI_RADCOR=false;
 
 
-inline double velocity(double s, double mt )	 { 
+inline double velocity(double s, double mt )
+{ 
     return sqrt(1.-sq(mt*2)/s); 
 }
 
-inline double velocity( double gamma2)	 { 
+inline double velocity( double gamma2)
+{ 
     return sqrt(1.- 1./gamma2); 
 }
 
-inline bool is_below_threshold(double gamma2)	{
+inline bool is_below_threshold(double gamma2)
+{
 	return  (gamma2 < 1);
 }
 
-inline bool is_below_threshold(double s, double mt)	{
+inline bool is_below_threshold(double s, double mt)
+{
 	return  (s < 4*mt*mt);
 }
 /* Name convention:
@@ -53,50 +56,58 @@ inline bool is_below_threshold(double s, double mt)	{
 
 // ***************  Crossection at tree level  ***************************************** //
 
-inline double sigma_tree(double s,double mt)	{
+inline double sigma_tree(double s,double mt)
+{
 	if( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*v*(3.-v*v)/2./s;
 }
 
-inline double sigma_tree( double g)	{
+inline double sigma_tree( double g)
+{
 	if( is_below_threshold(g) ) return 0;
 	double v=velocity(g);
 	return v*(3.-v*v)/g;
 }
 
 
-inline double sigma_tree_v( double s,double mt)	{
+inline double sigma_tree_v( double s,double mt)
+{
 	double v=velocity(s,mt);
 	return SIGMA_CONST*(3.-v*v)/2./s;
 }
 
 
-inline double sigma_tree_v( double gamma2)	{
+inline double sigma_tree_v( double gamma2)
+{
 	double v=velocity(gamma2);
 	return (3.-v*v)/gamma2;
 }
 
-inline double sigma_tree_fc( double s, double mt)	{
+inline double sigma_tree_fc( double s, double mt)
+{
 	if( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*(3.-v*v)/2./s*vFc(v);
 }
 
-inline double sigma_tree_fc_vpl(double s, double mt)	{
+inline double sigma_tree_fc_vpl(double s, double mt)
+{
 	if( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*(3.-v*v)/2./s*vFc(v)*Vp_lepton(s);
 }
 
-inline double sigma_tree_fc_vpl_vph( double s, double mt)	{
+inline double sigma_tree_fc_vpl_vph( double s, double mt)
+{
 	if( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*(3.-v*v)/2./s*vFc(v)*Vp_lepton(s)*Vp_hadron(s);
 }
 
 
-inline double sigma_tree_fc_vpl_fsrc( double s, double mt)	{
+inline double sigma_tree_fc_vpl_fsrc( double s, double mt)
+{
 	if( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*(3.-v*v)/2./s*vFc(v)*Vp_lepton(s)*fsrc(v);
@@ -104,8 +115,9 @@ inline double sigma_tree_fc_vpl_fsrc( double s, double mt)	{
 
 
 
-bool test_bad(double x) {
-	return isnan(x) || isinf(x);
+inline bool test_bad(double x)
+{
+	return std::isnan(x) || std::isinf(x);
 };
 
 
@@ -114,42 +126,46 @@ inline double sigma_tree_fc_vp_fsrc( double s, double mt)
 {
   double sigma=0;
   if(DEBUG==1) cout << "s="<<s <<", mt=" << mt << std::endl;
-	if(isnan(s) || isinf(s)) std::cout << "Bad s=" << s << std::endl;
+	if(std::isnan(s) || std::isinf(s)) std::cout << "Bad s=" << s << std::endl;
 // Рабочая функция для интегрирования. Учтены все поправки в конечном сосстоянии и поляризация вакуума.
 	if ( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	double vfc=vFc(v);
 	double vp=VP(s,mt);
 	double frc=fsrc(v);
-	if(isnan(v) || isinf(v)) std::cout << "vFc("<<v<<") = " << vfc << endl;
+	if(std::isnan(v) || std::isinf(v)) std::cout << "vFc("<<v<<") = " << vfc << endl;
 	if(test_bad(vp)) std::cout << "vp("<<sqrt(s/4) <<") = " << vp << endl;
 	if(test_bad(frc)) std::cout << "fsrc("<<v<<") = " << frc << endl;
 	sigma= SIGMA_CONST*(3.-v*v)/(2*s)*vFc(v)*VP(s,mt)*fsrc(v);
-  if(isnan(sigma) || isinf(sigma)) sigma=0;
+  if(std::isnan(sigma) || std::isinf(sigma)) sigma=0;
   return sigma;
 }
 
 // Bukin's sequence 
 
-inline double sigma_tree_vpl(double s, double mt)	{
+inline double sigma_tree_vpl(double s, double mt)
+{
 	if ( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*v*(3.-v*v)/2./s*Vp_lepton(s);;
 }
 
-inline double sigma_tree_vp(double s, double mt)	{
+inline double sigma_tree_vp(double s, double mt)
+{
 	if ( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*v*(3.-v*v)/2./s*VP(s,mt);;
 }
 
-inline double sigma_tree_vp_fsrc(double s, double mt)	{
+inline double sigma_tree_vp_fsrc(double s, double mt)
+{
 	if( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*v*(3.-v*v)/2./s*VP(s,mt)*fsrc(v);
 }
 
-inline double sigma_tree_vp_fsrc_fc(double s, double mt)	{
+inline double sigma_tree_vp_fsrc_fc(double s, double mt)
+{
 	if( is_below_threshold(s,mt) ) return 0;
 	double v=velocity(s,mt);
 	return SIGMA_CONST*(3.-v*v)/2./s*VP(s,mt)*fsrc(v)*vFc(v);
@@ -159,7 +175,8 @@ inline double sigma_tree_vp_fsrc_fc(double s, double mt)	{
 
 
 // Crossection only with final radiative corrections. 
-inline double sigma_final_radcor(double gamma2)	{
+inline double sigma_final_radcor(double gamma2)
+{
 	if ( is_below_threshold(gamma2) ) return 0;
 	double v=velocity(gamma2);
 	double fr = Fr(v);
@@ -172,14 +189,16 @@ inline double sigma_final_radcor(double gamma2)	{
 }
 
 // Cross sectin with final state colomb interaction and final state radiative corrections //
-inline double sigma_final_radcor(double s,double mt)	{
+inline double sigma_final_radcor(double s,double mt)
+{
 	double g2 = s/sq(2.*mt);
 	return sigma_final_radcor(g2)*SIGMA_CONST/2./sq(2*mt);
 }
 
 
 // Cross section with final state radiative corrections and vacuum polarisation of intermediate photon
-inline double sigma_final_vp_radcor ( double s, double mt )	{
+inline double sigma_final_vp_radcor ( double s, double mt )
+{
 	return sigma_tree_fc_vpl_fsrc(s,mt);
 	double  gamma2 = s/sq(2.*mt);
 	if(gamma2<=1) return 0;
@@ -214,12 +233,14 @@ double sigma1(double *x, double *p)	{
 /*Подинтегральное выражение для использования в алгоритме интегрирования */
 
 
-class F_sigma {
+class F_sigma
+{
 	const double s;
 	const double mt;
 	public:
 	F_sigma(double s_, double mt_) : s(s_), mt(mt_){}
-	double operator()(double x)	{
+	double operator()(double x)
+  {
 		return F(x,s)*sigma_final_vp_radcor(s*(1.-x),mt);
 	}
 };
@@ -228,7 +249,8 @@ class F_sigma {
 
 
 // Сечение с учетом всех радпоправок.
-inline double sigma_all_radcor_sing(double s, double mt, double prec)	{
+inline double sigma_all_radcor_sing(double s, double mt, double prec)
+{
 	double eps = 1. - sq(2*mt)/s;	
 	if (eps < 0) return 0;
 	double xmax = min(eps,2*60/sqrt(s));
@@ -238,63 +260,74 @@ inline double sigma_all_radcor_sing(double s, double mt, double prec)	{
 	return I;
 }
 
-class F_reg1_sigma	{
+class F_reg1_sigma
+{
 	const double mt;
 	const double s;
 	double L;
 	double b;
 public:
-	F_reg1_sigma(double s_, double mt_)	: mt(mt_), s(s_) {
+	F_reg1_sigma(double s_, double mt_)	: mt(mt_), s(s_)
+  {
 		L = log(s/ME/ME);
 		b = 2*ALPHAPI*(L-1.);
 	}
-	double operator()(double x)	{
+	double operator()(double x)
+  {
 		return F_reg1(b,x)*sigma_final_vp_radcor(s*(1.-x),mt);
 	}
 };
 
 
 
-class F_reg_x_b_sigma	{
+class F_reg_x_b_sigma
+{
 	const double mt;
 	const double s;
 	double L;
 	double b;
 	double rb;
 public:
-	F_reg_x_b_sigma(double s_, double mt_)	: mt(mt_), s(s_) {
+	F_reg_x_b_sigma(double s_, double mt_)	: mt(mt_), s(s_)
+  {
 		L = log(s/ME/ME);
 		b = 2*ALPHAPI*(L-1.);
 		rb = 1./b;
 	}
-	double operator()(double y)	{
+	double operator()(double y)
+  {
 		return F_reg_x_b(b,L)*sigma_final_vp_radcor(s*(1.-pow(y,rb)),mt);
 	}
 };
 
 
 
-class F_reg_ln_x_sigma	{
+class F_reg_ln_x_sigma
+{
 	const double mt;
 	const double s;
 public:
-	F_reg_ln_x_sigma(double s_, double mt_)	: mt(mt_), s(s_) {
+	F_reg_ln_x_sigma(double s_, double mt_)	: mt(mt_), s(s_)
+  {
 	}
-	double operator()(double y)	{
+	double operator()(double y)
+  {
 		double x = y*y;	
 		return F_reg_ln_x(x)*sigma_final_vp_radcor (s*(1.-x),mt);
 	}
 };
 
 
-class F2_reg_x_sigma {
+class F2_reg_x_sigma
+{
 	const double s;
 	const double b;
 	const double L;
 	const double mt;
 public:
 	F2_reg_x_sigma(double s_, double b_, double L_,double mt_)	: s(s_), b(b_), L(L_),mt(mt_) {}
-	double operator()(double y)	{
+	double operator()(double y)
+  {
 		double x=exp(y);
 		return F2_reg_x(x,s,b,L)*sigma_final_vp_radcor(s*(1.-x), mt);
 	}
@@ -316,8 +349,10 @@ public:
 };
 */
 // Сечение с учетом всех радпоправок.
-inline double sigma_all_radcor(double s, double mt, double prec)	{
-	if ( NO_INI_RADCOR )	{
+inline double sigma_all_radcor(double s, double mt, double prec)
+{
+	if ( NO_INI_RADCOR )
+  {
 		return sigma_final_vp_radcor(s,mt);
 	}
 	double eps = 1. - sq(2*mt)/s;	
@@ -358,20 +393,23 @@ inline double sigma_all_radcor(double s, double mt, double prec)	{
 }
 
 
-class XB	{
+class XB
+{
 	const double rb;
 	public:
 		XB(double b): rb(b) {};
 		double operator() (double y)	{ return pow(y,rb); }
 };
 
-class Y2	{
+class Y2
+{
 	public:
 		Y2(void) {};
 		double operator() (double y)	{ return y*y; }
 };
 
-class EXP	{
+class EXP
+{
 	public:
 		EXP(void) {};
 		double operator() (double y)	{ return exp(y); }
@@ -411,24 +449,28 @@ inline double sigma_all_radcor2(double s, double mt, double prec)	{
 // Вычисление сечения с учетом разброса энергии в пучке.
 
 static double INTEGRAL_PRECISION;
-class Spread	{
+class Spread
+{
 	const double W;
 	const double delta;
 	const double mt;
 	double prec;
 	public:
 	
-	Spread(double W_, double delta_, double mt_, double p): W(W_), delta(delta_), mt(mt_)	{
+	Spread(double W_, double delta_, double mt_, double p): W(W_), delta(delta_), mt(mt_)
+  {
 		prec = p;
 	}
-	double operator()(double w) {
+	double operator()(double w)
+  {
 			return exp(-sq(w-W)/(2*delta*delta))*sigma_all_radcor(w*w,mt,INTEGRAL_PRECISION);
 		//if(w>=1777) return exp(-sq(w-W)/(2*delta*delta))*100 ; 
 		//else return 0;
 	}
 };
 
-inline  double sigma_total2(double W, double delta, double mt, double prec)	{
+inline  double sigma_total2(double W, double delta, double mt, double prec)
+{
 	double nsig=3;
 	Spread theSpread(W,delta,mt,prec);
 
@@ -436,43 +478,48 @@ inline  double sigma_total2(double W, double delta, double mt, double prec)	{
 	//	double P[7] = { 0, 2.14, 3.03, 3.71, 4.29 , 4.8 , 5.25};
 	double P[7] = { 0, 3.0, 4.8 , 5.25, 7};
 	double result=0;
-	if(W < 2*mt)	{
-	for(int i = 0; i < 2 ; i++)	{
-	result+=ibn::dgaus(theSpread,max(2*mt, W + delta * P[i]),   max(2*mt, W + delta * P[i+1]), INTEGRAL_PRECISION);
-	//cerr << "result = " << result << ", min=" << W+delta*P[i] << ", max = " << W+delta*P[i+1] << ", P[i]=" <<P[i] <<  endl;
-	//cerr <<  "W = "<< W << " E = " << W/2. << ", mt=" << mt << endl ; 
-	if(INTEGRAL_PRECISION < 0.1) INTEGRAL_PRECISION*=100;
-	}
-	if (result ==0) { 
-	result+=ibn::dgaus(theSpread,2*mt,   2*mt+(nsig-1)*delta, INTEGRAL_PRECISION);
-	//cerr << " result = " << result << endl;
-	} ;
-	return result/delta/sqrt(2*M_PI);
-	}
-	else {
-	INTEGRAL_PRECISION = prec;
-	if(W > 2*mt+nsig*delta) {
-	result=0;
-	result += ibn::dgaus(theSpread,2*mt+nsig*delta, W+2*nsig*delta, prec);
-	INTEGRAL_PRECISION*=100;
-	result += ibn::dgaus(theSpread,2*mt, 2*mt + nsig*delta, INTEGRAL_PRECISION);
-	//if (result ==0) { cerr << " result = 0!!!" << endl ; } ;
-	return result/delta/sqrt(2*M_PI);
-	}
-	 
-	/*
-		 if( W > 2*mt + 2*nsig*delta)	{
-		 result += ibn::dgaus(theSpread,2*mt+2*nsig*delta, W+6*delta, INTEGRAL_PRECISION);
-		 INTEGRAL_PRECISION*=100;
-		 result += ibn::dgaus(theSpread,2*mt+nsig*delta, 2*mt + 2*nsig*delta , INTEGRAL_PRECISION);
-		 INTEGRAL_PRECISION*=100;
-			//result += ibn::dgaus(theSpread,2*mt, 2*mt + nsig*delta, INTEGRAL_PRECISION);
-				return result/delta/sqrt(2*M_PI);
-			} */
-	
-	return 1./(sqrt(2*M_PI)*delta)*ibn::dgaus(theSpread,2*mt, W+2*nsig*delta, prec);
-	}
-	return 1./(sqrt(2*M_PI)*delta)*ibn::dgaus(theSpread,2*mt, W+2*nsig*delta, prec);
+  if(W < 2*mt)
+  {
+    for(int i = 0; i < 2 ; i++)
+    {
+      result+=ibn::dgaus(theSpread,max(2*mt, W + delta * P[i]),   max(2*mt, W + delta * P[i+1]), INTEGRAL_PRECISION);
+      //cerr << "result = " << result << ", min=" << W+delta*P[i] << ", max = " << W+delta*P[i+1] << ", P[i]=" <<P[i] <<  endl;
+      //cerr <<  "W = "<< W << " E = " << W/2. << ", mt=" << mt << endl ; 
+      if(INTEGRAL_PRECISION < 0.1) INTEGRAL_PRECISION*=100;
+    }
+    if (result ==0)
+    { 
+      result+=ibn::dgaus(theSpread,2*mt,   2*mt+(nsig-1)*delta, INTEGRAL_PRECISION);
+      //cerr << " result = " << result << endl;
+    } ;
+    return result/delta/sqrt(2*M_PI);
+  }
+  else
+  {
+    INTEGRAL_PRECISION = prec;
+    if(W > 2*mt+nsig*delta)
+    {
+      result=0;
+      result += ibn::dgaus(theSpread,2*mt+nsig*delta, W+2*nsig*delta, prec);
+      INTEGRAL_PRECISION*=100;
+      result += ibn::dgaus(theSpread,2*mt, 2*mt + nsig*delta, INTEGRAL_PRECISION);
+      //if (result ==0) { cerr << " result = 0!!!" << endl ; } ;
+      return result/delta/sqrt(2*M_PI);
+    }
+
+    /*
+       if( W > 2*mt + 2*nsig*delta)	{
+       result += ibn::dgaus(theSpread,2*mt+2*nsig*delta, W+6*delta, INTEGRAL_PRECISION);
+       INTEGRAL_PRECISION*=100;
+       result += ibn::dgaus(theSpread,2*mt+nsig*delta, 2*mt + 2*nsig*delta , INTEGRAL_PRECISION);
+       INTEGRAL_PRECISION*=100;
+    //result += ibn::dgaus(theSpread,2*mt, 2*mt + nsig*delta, INTEGRAL_PRECISION);
+    return result/delta/sqrt(2*M_PI);
+    } */
+
+    return 1./(sqrt(2*M_PI)*delta)*ibn::dgaus(theSpread,2*mt, W+2*nsig*delta, prec);
+  }
+  return 1./(sqrt(2*M_PI)*delta)*ibn::dgaus(theSpread,2*mt, W+2*nsig*delta, prec);
 }
 
 
@@ -492,7 +539,8 @@ inline  double sigma_total2(double W, double delta, double mt, double prec)	{
 inline double Sigma ( double s, double mt)
 {
   double sig = sigma_tree_fc_vp_fsrc(s,mt);
-  if ( isnan(sig) || isinf(sig) ) {
+  if ( std::isnan(sig) || std::isinf(sig) )
+  {
     sig = -1;
     cout << "ERROR: sigma = nan || inf \n";
     exit(1);
@@ -500,7 +548,8 @@ inline double Sigma ( double s, double mt)
   return sig;
 } 
 
-double Gauss( double w, double delta)	{
+double Gauss( double w, double delta)
+{
 	return exp(- sq(w/delta)/2. )/delta/sqrt( 2*M_PI );
 }
 
@@ -514,9 +563,15 @@ public:
 	double operator()(double *y)
   {
 		double eps =  1. - 4.* sq(mtau / y[1]);
+    if(eps<=0) return 0;
 		double x = y[0]*eps;
 		double b = 2*ALPHAPI*( 2*log(y[1]/ME) - 1.);
-		return eps*b*F_reg1(b,x)*Sigma(y[1]*y[1]*( 1.-x),mtau)*Gauss(W-y[1],delta);
+		double result =  eps*b*F_reg1(b,x)*Sigma(y[1]*y[1]*( 1.-x),mtau)*Gauss(W-y[1],delta);
+    if(std::isnan(result)|| std::isinf(result))
+    {
+      cerr << "GFSreg: " << result << " W=" << W << " b=" << b << " x=" <<  x << " eps = " << eps << endl;
+    }
+    return result;
 	}
 	int dimension(void) { return 2; }
 };
@@ -527,12 +582,19 @@ class GFSxb	{
 	const double delta;
 public:
 	GFSxb( double w, double mt, double dt)	: W(w), mtau(mt), delta(dt) {}
-	double operator()( double *z )	{
+	double operator()( double *z )
+  {
 		double eps = (1. - 4.* sq(mtau / z[1]));
+    if(eps<=0) return 0;
 		double L = 2*log(z[1]/ME);
 		double b = 2*ALPHAPI*(L-1.);
 		double x = pow(z[0],1./b)*eps;
-	  return pow(eps,b)*F_reg_x_b(b,L)*Sigma(z[1]*z[1]*( 1.-x),mtau)*Gauss(W-z[1],delta);
+	  double result  = pow(eps,b)*F_reg_x_b(b,L)*Sigma(z[1]*z[1]*( 1.-x),mtau)*Gauss(W-z[1],delta);
+    if(std::isnan(result)|| std::isinf(result))
+    {
+      cerr << "GFSxb: " << result << " W=" << W << " b=" << b << " x=" <<  x << " eps = " << eps <<  " L=" << L << endl;
+    }
+    return result;
 	}
 	int dimension(void) { return 2; }
 };
@@ -543,11 +605,18 @@ class GFSln	{
 	const double delta;
 public:
 	GFSln(double w, double mt, double dt)	: W(w), mtau(mt), delta(dt) {}
-	double operator()(double *z)	{
+	double operator()(double *z)
+  {
 		double eps = ( 1. - 4.* sq(mtau / z[1]));
+    if(eps<=0) return 0;
 		double b = 2*ALPHAPI*( 2*log(z[1]/ME) - 1.);
 		double x = z[0]*z[0]*eps;
-		return 0.75*b*b*F_reg_ln_x(x)*Sigma(z[1]*z[1]*(1.-x),mtau)*Gauss(W-z[1],delta)*sqrt(eps);
+		double result= 0.75*b*b*F_reg_ln_x(x)*Sigma(z[1]*z[1]*(1.-x),mtau)*Gauss(W-z[1],delta)*sqrt(eps);
+    if(std::isnan(result) || std::isinf(result))
+    {
+      cerr << "GFSln: " << result << " W=" << W << " b=" << b << " x=" <<  x << " eps = " << eps << endl;
+    }
+    return result;
 	}
 	int dimension(void) { return 2; }
 };

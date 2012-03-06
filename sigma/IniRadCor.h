@@ -36,11 +36,13 @@ inline double F(double x, double s)
 }
 
 
-inline double F_reg1( double b, double x)	{
+inline double F_reg1( double b, double x)
+{
 	return (-1. + 0.5*x + b/8.*(-6. + x));
 }
 
-class FReg1	{
+class FReg1
+{
 	const double b;
 	public:
 		FReg1(double b_) : b(b_) {}
@@ -51,11 +53,13 @@ class FReg1	{
 	 вычисляются лишь один раз */
 const double FXB1 = 1. + ALPHAPI*( PI2/3.-0.5);
 const double FXB2 = 2*PI2 - 37./4.;
-inline double F_reg_x_b( double b, double L )	{
+inline double F_reg_x_b( double b, double L )
+{
 				return (FXB1 + 0.75*b - b*b/24.*(L/3.+ FXB2));
 }
 
-class FRegxb	{
+class FRegxb
+{
 	const double b;
 	const double L;
 	public:
@@ -63,18 +67,21 @@ class FRegxb	{
 		double operator()(double x)		{ return F_reg_x_b(b,L); }
 }; 
 
-inline double F_reg_ln_x(double x)	{
-		if(x==0) return 0;
+inline double F_reg_ln_x(double x)
+{
+		if(x<=0) return 0;
 		return (-sqrt(x)*( 4*(2.-x)*log(x) + (1.+3.*sq(1.-x)) * log(1.-x)/x));
 }
 
-class FRegLn	{
+class FRegLn
+{
 	public:
 		FRegLn(void) {}
 		double operator()(double x)		{ return F_reg_ln_x(x); }
 };
 
-inline double F2_reg_x ( double x, double s, double b, double L)	{
+inline double F2_reg_x ( double x, double s, double b, double L)
+{
 	double cond = x - 4.*ME/sqrt(s);
 	if(cond < 0) return 0;
 	double L53 = log(s*sq(x/ME)) - 5./3.;
@@ -83,7 +90,8 @@ inline double F2_reg_x ( double x, double s, double b, double L)	{
 }
 
 
-class FReg2x {
+class FReg2x
+{
 	const double s,b,L;
 	public:
 		FReg2x(double s_, double b_, double L_ ) :s(s_), b(b_) , L(L_) {}
@@ -91,15 +99,18 @@ class FReg2x {
 };
 
 // Функции для руута
-double F_reg1(double *x, double *p)	{
+double F_reg1(double *x, double *p)
+{
 	return F_reg1(*p,*x);
 }
 
-double F_reg_ln_x(double *x, double *p)	{
+double F_reg_ln_x(double *x, double *p)
+{
 	return F_reg_ln_x(*x);
 }
 
-double F2_reg_x(double *x, double *p)	{
+double F2_reg_x(double *x, double *p)
+{
 	return F2_reg_x(*x,p[0],p[1],p[2]);
 } 
 #endif 

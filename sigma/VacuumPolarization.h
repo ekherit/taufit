@@ -251,7 +251,7 @@ class VPtab
     {
       E=Emin+i*dE;
       vp=Vp(4*E*E);
-      if(isnan(vp) || isinf(vp))
+      if(std::isnan(vp) || std::isinf(vp))
       {
         cerr << " ERROR  VPtab init bad vp value: " << vp << " i="<< i << " E=" << E << endl;
         exit(1);
@@ -297,7 +297,7 @@ static VPtab VPT(1820,1910,0.001);  //расширил диапазон и добавил точности.
 
 static inline double VP(double S, double mt=MTAU)
 {
-  if(S<0 || isnan(S) || isinf(S))
+  if(S<0 || std::isnan(S) || std::isinf(S))
   {
     return 1e300;
   }

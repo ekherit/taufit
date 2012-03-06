@@ -35,19 +35,22 @@ inline double h(double v, double mt = MTAU);
 class Polylog;
 using namespace std;
 // Colomb intaraction correction in final states (Voloshin) 
-inline double Fc(double v)	{
+inline double Fc(double v)
+{
     double z=PIALPHA/v;
     return z/(1-exp(-z));
 }
 
 // Fc*v function
-inline double vFc(double v)	{
+inline double vFc(double v)
+{
     if(v==0) return PIALPHA;
     return PIALPHA/(1. - exp(-PIALPHA/v));
 }
 
 
-inline double Fr(double v)	{
+inline double Fr(double v)
+{
     double fr = 1. + ALPHAPI* (S(v) + 2./3. * h(v) ) ;
     return fr;
 }
@@ -81,7 +84,8 @@ inline double Li2(double x)
 }
 
 
-class Polylog	{
+class Polylog
+{
     public:
 	Polylog(void){}
 	double operator() (double x)
@@ -124,34 +128,39 @@ inline double Li2_int2( double x1, double x2)
     return ibn::dgaus(Polylog(),x1,x2,PRECISION);
 }
 
-class h_sub1 {
-    typedef complex<double> comp_t;
-    const double zv;
-    const double t;
-    const double lambda;
-    public:
-    h_sub1( double zv_, double t_, double l_) : zv(zv_), t(t_), lambda(l_) {}
-    comp_t operator()( double x ) 	{
-	return pow(t + zv/x , comp_t(-1., lambda)) / pow( t+1. + zv/x, comp_t(1.,lambda) ) *
-	    ( 1. +0.5 * sq(x)) * sqrt( 1. - x*x) /x/x;
-    }
+class h_sub1
+{
+  typedef complex<double> comp_t;
+  const double zv;
+  const double t;
+  const double lambda;
+  public:
+  h_sub1( double zv_, double t_, double l_) : zv(zv_), t(t_), lambda(l_) {}
+  comp_t operator()( double x )
+  {
+    return pow(t + zv/x , comp_t(-1., lambda)) / pow( t+1. + zv/x, comp_t(1.,lambda) ) *
+      ( 1. +0.5 * sq(x)) * sqrt( 1. - x*x) /x/x;
+  }
 };
 
-class h_sub2 {
-    typedef complex<double> comp_t;
-    const double zv;
-    const double lambda;
-    public:	
-    h_sub2( double zv_, double l_) : zv(zv_), lambda(l_) {}
-    comp_t operator()( double etta)	{
-	double t = etta /(1.-etta);
-	comp_t tmp = pow( (1+t)/t, comp_t(0,lambda)) * ibn::dgaus_comp( h_sub1(zv,t,lambda) , 0, 1,PRECISION)/ sq(1.-etta);
-	//cerr << tmp << endl;
-	return tmp;
-    }
+class h_sub2
+{
+  typedef complex<double> comp_t;
+  const double zv;
+  const double lambda;
+  public:	
+  h_sub2( double zv_, double l_) : zv(zv_), lambda(l_) {}
+  comp_t operator()( double etta)
+  {
+    double t = etta /(1.-etta);
+    comp_t tmp = pow( (1+t)/t, comp_t(0,lambda)) * ibn::dgaus_comp( h_sub1(zv,t,lambda) , 0, 1,PRECISION)/ sq(1.-etta);
+    //cerr << tmp << endl;
+    return tmp;
+  }
 };
 
-inline double h_int(double v, double mt=MTAU)	{
+inline double h_int(double v, double mt=MTAU)
+{
     //Попытка вычислить h прямым интегрированием.
     double lambda = ALPHA/2./v;
     double zv = ME/mt/v;
@@ -167,11 +176,13 @@ inline double h(double v, double mt )
   double h0 = (1. - (1.+z)*exp(-z))/(1. - exp(-z));
   double b;
 
-  if( v <= 0.01)  {
+  if( v <= 0.01)
+  {
     b = 0.998929  - 7.71335 *v + 1033.43*v*v;
     return b*h0*H0;
   } 
-  if( v <= 0.04)	{
+  if( v <= 0.04)
+  {
     b = 0.927085 + 9.46920 * v  - 31.2432*v*v;
     return b*h0*H0;
   }
@@ -266,55 +277,66 @@ class FSRC
   }
 };
 
-class FinRadCor	{
-    double precision;
-    /* 
-     * 	maximum and minimal meaning of tau velocity
-     * 	belong this value direct radiation corrections will be performed
-     */
-    double vmax, vmin; 
-    double dv; //elementary step in velocity (it depends on precision )
-    vector <double> rad_cor_array;
-    double vel(unsigned i )	{	return (vmin  + i*dv); }
-    public:
-    FinRadCor(void){};
-    FinRadCor( double p ,double  mx = 0.4, double mn = 0 ) 	{
-	Init(p,mx,mn);		
-    }	
-    void Init( double p,double  mx = 0.3,double  mn = 0) {
-	vmin = mn;
-	vmax = mx;
-	if(vmin <  0 ) { 
-	    cerr << "error: FinRadCor class: vmin below zero." << endl;
-	    exit(1);
-	}
-	if(vmax <= vmin) {
-	    cerr << "error: FinRadCor class: vmax <= vmin in Fin." << endl;
-	    exit(1);
-	}
-	if(p==0) {
-	    cerr << "error: FinRadCor class: precision equal zero." << endl;
-	    exit(1);
-	}
-	precision = p;
-	unsigned N = unsigned (1./precision);
-	double v;
-	dv = (vmax-vmin)/N;
-	rad_cor_array.resize(N+1);
-	for ( unsigned i = 0 ; i< rad_cor_array.size() ; i++)	{
-	    v= vel(i);
-	    rad_cor_array[i] = vFc(v)*Fr(v);
-	    //cout << i << ": " << v << ": " << rad_cor_array[i] << endl;
+class FinRadCor
+{
+  double precision;
+  /* 
+   * 	maximum and minimal meaning of tau velocity
+   * 	belong this value direct radiation corrections will be performed
+   */
+  double vmax, vmin; 
+  double dv; //elementary step in velocity (it depends on precision )
+  vector <double> rad_cor_array;
+  double vel(unsigned i )	{	return (vmin  + i*dv); }
+  public:
+  FinRadCor(void){};
+  FinRadCor( double p ,double  mx = 0.4, double mn = 0 )
+  {
+    Init(p,mx,mn);		
+  }	
+  void Init( double p,double  mx = 0.3,double  mn = 0)
+  {
+    vmin = mn;
+    vmax = mx;
+    if(vmin <  0 )
+    { 
+      cerr << "error: FinRadCor class: vmin below zero." << endl;
+      exit(1);
+    }
+    if(vmax <= vmin)
+    {
+      cerr << "error: FinRadCor class: vmax <= vmin in Fin." << endl;
+      exit(1);
+    }
+    if(p==0)
+    {
+      cerr << "error: FinRadCor class: precision equal zero." << endl;
+      exit(1);
+    }
+    precision = p;
+    unsigned N = unsigned (1./precision);
+    double v;
+    dv = (vmax-vmin)/N;
+    rad_cor_array.resize(N+1);
+    for ( unsigned i = 0 ; i< rad_cor_array.size() ; i++)
+    {
+      v= vel(i);
+      rad_cor_array[i] = vFc(v)*Fr(v);
+      //cout << i << ": " << v << ": " << rad_cor_array[i] << endl;
 
-	}
     }
-    double operator()(double v)	{
-	if(v >= vmin && v <=vmax) {
-	    return  rad_cor_array[  unsigned ( (v - vmin)/dv ) ];
-	} else {
-	    return vFc(v)*Fr(v);
-	}
+  }
+  double operator()(double v)
+  {
+    if(v >= vmin && v <=vmax)
+    {
+      return  rad_cor_array[  unsigned ( (v - vmin)/dv ) ];
+    } 
+    else
+    {
+      return vFc(v)*Fr(v);
     }
+  }
 };
 
 
@@ -330,24 +352,30 @@ static FSRC fsrc(1e-6,0.4,0.0);  //расширил диапазон и добавил точности.
 // 0.1   1785
 
 // this functions are used by root TF1
-double S(double * x, double *p)	{
+double S(double * x, double *p)
+{
     return S(*x);
 } 
 
-double h(double *x, double *p)	{
+double h(double *x, double *p)
+{
     return h(*x);
 }
 
-double vFc(double *x, double *p)	{
+double vFc(double *x, double *p)
+{
     return vFc(*x);
 }
-double Fr(double *x, double *p)	{
+double Fr(double *x, double *p)
+{
     return Fr(*x)-1.;
 }
-double Fc(double *x, double *p)	{
+double Fc(double *x, double *p)
+{
     return Fc(*x);
 }
-double Li2(double *x, double *p)	{
+double Li2(double *x, double *p)
+{
     //return Li2_array(*x);
     return Li2_int_reg(*x);
 }
