@@ -32,6 +32,11 @@ double sigma_fit (double *x, double *p)	{
 }
 
 
+//double fit_function(double mtau, double eps, double bg)
+//{
+//  return eps * sigma + fabs(par[2]));
+//}
+
 double factorial(unsigned N)	{
 	if(N<=0) return 1;
 	double f=1.;
@@ -183,7 +188,8 @@ double InPol2(unsigned N, double *X, double *Y, double x )
 }
 
 
-double Delta( double E)	{
+double Delta( double E)
+{
 	/*
 	int imin=0;
 	int imax=POINT_NUMBER;
@@ -702,3 +708,38 @@ void contur(TMinuit * minuit){
     double levels[] = {5,4,3,2,1,0.5,0.4,0.3,0.2,0.1,0.001};
     contur(minuit,0,1,100,levels,11);
 }
+
+TGraph * ivanos3(TMinuit * minuit, double mmin, double mmax, double dm)
+{
+	minuit->SetFCN(Lfcn);
+	Double_t arglist[10];
+	Int_t ierflg = 0;
+ 	minuit->SetErrorDef(0.5);
+	minuit->mnparm( 0, "MTAU",    0,   0.1,  0, 0, ierflg);
+	minuit->mnparm( 1,  "EFF", 1e-3,   0.005,   0,  1, ierflg);
+	minuit->mnparm( 2,   "BG",    1,     0.5,   0,  100000, ierflg);
+  TGraph * graph = new TGraph;
+  TCanvas * c = new TCanvas;
+  graph->Draw("a*");
+  int i=0;
+  for(double M = mmin; M<mmax; M+=dm)
+  {
+    minuit->mnparm( 0, "MTAU", M,   0.1,  0, 0, ierflg);
+    minuit->FixParameter(0);
+    minuit->Migrad();
+    double par[3],er[3];
+    double p_tmp;
+    minuit->GetParameter(0,par[0],er[0]);
+    minuit->GetParameter(1,par[1],er[1]);
+    minuit->GetParameter(2,par[2],er[2]);
+    double fcn, fedm, errdef;
+    int npar, nparx, istat;
+    Lfcn(npar, &fedm, fcn, par, istat);
+    cout << "M=" << M << " "  << fcn << endl;
+    graph->SetPoint(i, M, fcn);
+    c->Modified();
+    c->Update();
+    i++;
+  }
+  return graph; 
+};

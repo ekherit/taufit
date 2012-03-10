@@ -4,7 +4,7 @@ CXXFLAGS=`root-config --cflags` -I./ -I$(HOME)/work/ -std=c++0x
 LIBS= `root-config --libs` -lMinuit -lboost_program_options
 
 draw_sigma :  draw_sigma.o libvp.a
-			g++ draw_sigma.o vp/libvp.a $(LIBS)   -o bin/draw_sigma
+			g++ draw_sigma.o vp/libvp.a $(LIBS)   -o $(HOME)/work/bin/taudraw
 
 draw_sigma.o :  draw_sigma.cpp
 			g++ $(CXXFLAGS) -c draw_sigma.cpp -o draw_sigma.o

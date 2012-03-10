@@ -35,7 +35,7 @@
 #include <TApplication.h>
 extern void InitGui();
 VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
-TROOT root("draw_tau_cross_section","Draw tau cross section", initfuncs);
+TROOT root("Fit tau mass","Fit tau mass", initfuncs);
 
 #include "sigma/Sigma.h"
 
@@ -57,6 +57,9 @@ int main(int argc, char ** argv)
     ("help,h","Print this help")
     ("data",po::value<std::string>()->default_value("scan.txt"), "File with data")
     ("spread",po::value<double>()->default_value(1.43),"energy spread" )
+    ("ivanos","Draw lfcn")
+    ("novp", "No vacuum polarization")
+//    ("fix","Fix parameter")
     ;
   po::positional_options_description pos;
   pos.add("data",-1);
@@ -78,29 +81,41 @@ int main(int argc, char ** argv)
     std::clog << opt_desc;
     return 0;
   }
+
+
+  double Sw = opt["spread"].as<double>();
+  if(opt.count("novp")) IS_VP_COR=false;
   string filename=opt["data"].as<string>();
   if(argc>1) filename=argv[argc-1];
 	ifstream file(filename.c_str());
 	if(!file) { cerr << "cant open file " << filename << endl; exit(0);}
 	cout << "Reading data from file " << filename << endl;
 
-  double Sw = opt["spread"].as<double>();
 	FillData2(file,Sw);
 	//FillData(file);
 	TGraphErrors * data_gr = DataGraph("r_{i} \\varepsilon \\sigma(e^{+}e^{-}\\rightarrow \\tau^{+}\\tau^{-}) + \\sigma_{B}");
 	
 	TMinuit *minuit = new TMinuit(3); 
 	minuit->SetFCN(Lfcn);
+	TApplication theApp("tau", &argc, argv);
+  if(opt.count("ivanos"))
+  {
+    TCanvas * ivc = new TCanvas;
+    TGraph * g = ivanos3(minuit, -1,+1,0.1);
+    g->Draw("al");
+    theApp.Run();
+  }
 
 	Double_t arglist[10];
 	Int_t ierflg = 0;
 
  	minuit->SetErrorDef(0.5);
 	minuit->mnparm( 0, "MTAU",    0,   0.1,  0, 0, ierflg);
-	minuit->mnparm( 1,  "EFF",  0.01,   0.1,   0,  1, ierflg);
-	minuit->mnparm( 2,   "BG",    0,     1,   0,  0, ierflg);
+	minuit->mnparm( 1,  "EFF",  0.01,   0.005,   0,  1, ierflg);
+	minuit->mnparm( 2,   "BG",    1,     0.5,   0,  100000, ierflg);
 	arglist[0]=2;
 	minuit->mnexcm("SET STR", arglist ,1,ierflg);
+	minuit->Migrad();
 	minuit->Migrad();
 	minuit->mnhess();
 	minuit->mnmnos();
@@ -124,9 +139,12 @@ int main(int argc, char ** argv)
   double dEPS = erpar[1]*100; 
   double BG = abs(par[2]); //background
   double dBG = abs(erpar[2]); //background
-  cout << "M = " <<  M << " +- " <<  erpar[0] << " MeV" << endl;
-  cout << "M - MPDG = " <<  par[0] << " +- " <<  erpar[0] << " MeV" << endl;
-	TApplication theApp("tau", &argc, argv);
+  char buf[1024];
+  sprintf(buf, "MTAU   = %7.2f +- %4.2f MeV", M , erpar[0]);
+  cout << buf << endl;
+  sprintf(buf, "M-MPDG = %7.2f +- %4.2f MeV", par[0], erpar[0]);
+  cout << buf << endl;
+  //cout << "M - MPDG = " <<  par[0] << " +- " <<  erpar[0] << " MeV" << endl;
 	TCanvas * sigma_c = new TCanvas("sigma", "sigma", 1.2*640,1.2*480); 
 	sigma_c->SetGrid();
 	data_gr->Draw("ap");

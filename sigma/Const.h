@@ -10,12 +10,19 @@
 //mass of electron
 //static const double ME=0.510998902;// mass of electron
 static const double ME_PDG2011=0.510998910; //+-0.000000013 
-static const double ME=ME_PDG2011;// mass of electron
+static const double ME_PDG=ME_PDG2011;// mass of electron
+static const double ME=ME_PDG;// mass of electron
+
+//muon
+static const double MMU_PDG2011=105.6583668; //+-0.0000038
+static const double MMU_PDG = MMU_PDG2011;
+static const double MMU = MMU_PDG;
 
 //tau mass
 static const double MTAU_PDG2002 = 1776.99; // mass of tau lepton PDG-2002
 static const double MTAU_PDG2011=1776.82; //error 0.16; 
 static const double MTAU = MTAU_PDG2011; 
+static const double MTAU_PDG = MTAU_PDG2011; 
 static const double MTAU2 = MTAU*MTAU; // m_\tau^2
 
 static const double ALPHA=1./137.03599976; //fine structure constant e^2/4pi

@@ -124,19 +124,23 @@ inline bool test_bad(double x)
 
 inline double sigma_tree_fc_vp_fsrc( double s, double mt)	
 {
-  double sigma=0;
+  double sigma=0; //cross section
+  double v=0; //velocity
+  double vfc=1; //colomb corrections
+  double vp=1; //vacuum polarization
+  double frc=1; //final state radiative corrections
   if(DEBUG==1) cout << "s="<<s <<", mt=" << mt << std::endl;
 	if(std::isnan(s) || std::isinf(s)) std::cout << "Bad s=" << s << std::endl;
-// Рабочая функция для интегрирования. Учтены все поправки в конечном сосстоянии и поляризация вакуума.
+  // Рабочая функция для интегрирования. Учтены все поправки в конечном сосстоянии и поляризация вакуума.
 	if ( is_below_threshold(s,mt) ) return 0;
-	double v=velocity(s,mt);
-	double vfc=vFc(v);
-	double vp=VP(s,mt);
-	double frc=fsrc(v);
+	v=velocity(s,mt);
+	vfc=vFc(v);
+	if(IS_VP_COR) vp=VP(s,mt);
+	frc=fsrc(v);
 	if(std::isnan(v) || std::isinf(v)) std::cout << "vFc("<<v<<") = " << vfc << endl;
 	if(test_bad(vp)) std::cout << "vp("<<sqrt(s/4) <<") = " << vp << endl;
 	if(test_bad(frc)) std::cout << "fsrc("<<v<<") = " << frc << endl;
-	sigma= SIGMA_CONST*(3.-v*v)/(2*s)*vFc(v)*VP(s,mt)*fsrc(v);
+	sigma= SIGMA_CONST*(3.-v*v)/(2*s)*vfc*vp*frc;
   if(std::isnan(sigma) || std::isinf(sigma)) sigma=0;
   return sigma;
 }
