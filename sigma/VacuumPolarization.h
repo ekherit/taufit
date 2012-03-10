@@ -11,10 +11,30 @@ extern "C"
 #include <vector>
 #include <cstdlib>
 
+#include "vplepton.h"
 using namespace std;
 
+bool VP_LIB_INIT=false;
 
-inline double Vp(double S)
+inline double Vp(double s, double mtau = MTAU)
+{
+  double S=s*1e-6;
+  double ReH=0,ImH=0,ReL=0,ImL=0;
+  double Re, Im;
+  vp::lepton(s,&ReL,&ImL,mtau);  // Считаем лептонную часть поляризации
+  if(!VP_LIB_INIT)
+  {
+    vp_init();
+    VP_LIB_INIT=true;
+  }
+  vp_hadron(&S,&ReH,&ImH);  // Считаем адронную часть поляризации
+  Re=ReL+ReH;
+  Im=ImL+ImH;
+  cout << "S = " << s << " ReL=" << ReL << " ImL=" << ImL << "  ReH=" << ReH << " ImH=" << ImH << endl;
+  return 1./((1.-Re)*(1.-Re) + Im*Im);
+}
+
+inline double Vp_old(double S)
 {
   S=S*1e-6;
   double ReH=0,ImH=0,ReL=0,ImL=0;
@@ -38,6 +58,7 @@ inline double Vp_hadron(double S)
   //return 1./((1.-Re)*(1.-Re) + Im*Im);
   return 1./((1.-Re)*(1.-Re) + Im*Im);
 }
+
 
 inline double ReHadron( double S )
 {
@@ -293,7 +314,87 @@ class VPtab
   }
 };
 
+// hadron tab
+class VPHtab
+{
+  std::vector <double> RE;
+  std::vector <double> IM;
+  bool isinit;
+  public:
+  double Emin, Emax,dE;
+  double Smin, Smax,dS;
+  unsigned N;
+
+  VPHtab(double E, double Erange, double de)
+  {
+    Emin=E-Erange/2.;
+    Emax=E+Erange/2.;
+    dE=de;
+    Smin = 4*Emin*Emin;
+    Smax = 4*Emax*Emax;
+    dS   = 4*(Emin+Emax)*dE;
+    isinit =false;
+  }
+  void Init(void)
+  {
+    std::cout << "Init vp hadron tabular ... ";
+    std::cout << "("<<Emin<<","<<Emax<<") dE="<<dE<<" ... " << flush;
+    if(!VP_LIB_INIT) vp_init();
+    VP_LIB_INIT=true;
+    cout << " OK\n";
+    N =  (Smax-Smin)/dS;
+    RE.resize(N);
+    IM.resize(N);
+    double S,s;
+    double re,im;
+    for(size_t i=0;i<N;i++)
+    {
+      S = Smin + i*dS;
+      s = S*1e-6;
+      vp_hadron(&s,&re,&im);
+      RE[i]=re;
+      IM[i]=im;
+      cout << sqrt(S)/2. << " " << re << " " << im << endl;
+    }
+    std::cout << " OK\n";
+    isinit = true;
+  }
+
+  double vp(double S, double & re, double & im)
+  {
+    if(!isinit) Init();
+    double x=(S-Smin)/dS;
+    int i=int(x);
+    if(i>=0 && i<N-1)
+    {
+      re=RE[i]+ (x-i)*(RE[i+1]-RE[i]);
+      im=IM[i]+ (x-i)*(IM[i+1]-IM[i]);
+    }
+    else 
+    {
+      double s=S*1e-6;
+      cout << "out of range" << endl;
+      vp_hadron(&s,&re,&im);
+    }
+  }
+};
+
 static VPtab VPT(1820,1910,0.001);  //расширил диапазон и добавил точности.
+static VPHtab VPHT(MTAU,100,0.01);  //расширил диапазон и добавил точности.
+
+//Лептонную часть считаю сам, а адронную по таблице.
+inline double Vp2(double s, double mtau = MTAU)
+{
+  double S=s*1e-6;
+  double ReH=0,ImH=0,ReL=0,ImL=0;
+  double Re, Im;
+  vp::lepton(s,&ReL,&ImL,mtau);  // Считаем лептонную часть поляризации
+  VPHT.vp(s, ReH, ImH);
+  Re=ReL+ReH;
+  Im=ImL+ImH;
+  //cout << "S = " << s << " ReL=" << ReL << " ImL=" << ImL << "  ReH=" << ReH << " ImH=" << ImH << endl;
+  return 1./((1.-Re)*(1.-Re) + Im*Im);
+}
 
 static inline double VP(double S, double mt=MTAU)
 {
@@ -302,7 +403,6 @@ static inline double VP(double S, double mt=MTAU)
     return 1e300;
   }
   double E = sqrt(S)/2.0;
-  if(E<1777) return 0;
   if(E<1777+47) return VP1777(S,mt);
   if(E>=VPT.Emin && E<VPT.Emax)    return VPT(S,mt);
   std::cerr << "Using VP\n";
