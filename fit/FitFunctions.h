@@ -112,6 +112,15 @@ void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi reson
 	int i;
 	for(i=0; !file.eof(); i++)
   {
+    char c = file.get();
+    if(c=='#')
+    {
+      file.ignore(65535,'\n');
+      i--;
+      continue;
+    }
+		if(file.eof()) break;
+    file.putback(c);
     file >> tmp >> lum >> W >> dW >> Sw >> dSw  >>  Ntt >> Nee >> Ngg;
     EVENT[i] = Ntt;
     ENERGY[i] = W/2;
@@ -119,7 +128,7 @@ void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi reson
     DELTA[i]  = sigmaW_psi2s*pow(W/3686.,2);
 		LUM[i] = lum/=1000; //перестчет из обратнрых набобарнов в обратные пикобарны
     EFCOR[i] = 1;
-    file.ignore(10000,'\n');
+    file.ignore(65535,'\n');
 		if(file.eof()) break;
 		cout << setw(6) << i+1 << setw(colw) << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(6) << EVENT[i] << setw(5) << EFCOR[i] << endl;
 	}

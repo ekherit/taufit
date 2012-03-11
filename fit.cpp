@@ -161,13 +161,15 @@ int main(int argc, char ** argv)
   y=v.back();
 
   char texbuf[1024];
-  sprintf(texbuf,"M_{#tau} = %7.2f #pm %4.2f MeV", M, dM);
+  //sprintf(texbuf,"M_{#tau} = %7.2f #pm %4.2f^{%+4.2f}_{%+4.2f} MeV", M, dM, minuit->fErp[0],minuit->fErn[0]);
+  sprintf(texbuf,"M_{#tau} = %7.2f^{%+4.2f}_{%+4.2f} MeV", M, minuit->fErp[0],minuit->fErn[0]);
   TLatex Mtex(x,y,texbuf);
   Mtex.Draw();
   sprintf(texbuf,"#varepsilon = %3.1f #pm %3.1f %%", EPS, dEPS);
   TLatex EPStex(x,y*0.9,texbuf);
   EPStex.Draw();
-  sprintf(texbuf,"#sigma_{BG} = %3.1f #pm %3.1f pb", BG, dBG);
+  //sprintf(texbuf,"#sigma_{BG} = %3.1f #pm %3.1f pb", BG, dBG);
+  sprintf(texbuf,"#sigma_{BG} = %3.1f^{%+4.2f}_{%+4.2f} pb", BG, minuit->fErp[2],minuit->fErn[2]);
   TLatex BGtex(x,y*0.8,texbuf);
   BGtex.Draw();
 
