@@ -110,8 +110,8 @@ int main(int argc, char ** argv)
 	Int_t ierflg = 0;
 
  	minuit->SetErrorDef(0.5);
-	minuit->mnparm( 0, "MTAU",    0,   0.1,  0, 0, ierflg);
-	minuit->mnparm( 1,  "EFF",  0.01,   0.005,   0,  1, ierflg);
+	minuit->mnparm( 0, "MTAU",    0,   0.5,  0, 0, ierflg);
+	minuit->mnparm( 1,  "EFF",  0.01,   0.2,   0,  1, ierflg);
 	minuit->mnparm( 2,   "BG",    1,     0.5,   0,  100000, ierflg);
 	arglist[0]=2;
 	minuit->mnexcm("SET STR", arglist ,1,ierflg);
@@ -173,7 +173,24 @@ int main(int argc, char ** argv)
   TLatex BGtex(x,y*0.8,texbuf);
   BGtex.Draw();
 
+  sprintf(texbuf,"M_{#tau}-M_{PDG} =%4.2f #pm %4.2f MeV ",M-MTAUSHIFT , sqrt(dM*dM + DMTAU_PDG*DMTAU_PDG));
+  TLatex DMtex(x,y*0.6,texbuf);
+  DMtex.Draw();
+
+  TGraphErrors * glum = new TGraphErrors(POINT_NUMBER);
+  for(int i=0;i<POINT_NUMBER; i++)
+  {
+    double r = double(NEE[i])/double(NGG[i]);
+    glum->SetPoint(i,ENERGY[i], r);
+    double dr = r*sqrt(1./NGG[i] + 1./NEE[i]);
+    glum->SetPointError(i, ENERGY_ERROR[i], dr);
+  }
+  TCanvas * clum = new TCanvas;
+  glum->SetMarkerStyle(21);
+  glum->Draw("ap");
+
   theApp.Run();
+
   return 0;
 }
 

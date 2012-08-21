@@ -21,8 +21,10 @@ static const double MMU = MMU_PDG;
 //tau mass
 static const double MTAU_PDG2002 = 1776.99; // mass of tau lepton PDG-2002
 static const double MTAU_PDG2011=1776.82; //error 0.16; 
+static const double DMTAU_PDG2011=0.16;
 static const double MTAU = MTAU_PDG2011; 
 static const double MTAU_PDG = MTAU_PDG2011; 
+static const double DMTAU_PDG = DMTAU_PDG2011; 
 static const double MTAU2 = MTAU*MTAU; // m_\tau^2
 
 static const double ALPHA=1./137.03599976; //fine structure constant e^2/4pi
@@ -40,12 +42,12 @@ static const double LAMBDAE = 3.861592642e-11;//cm
 static const double SIGMA_TOMSON = 0.665245854; //barn
 
 
-//const double NBARN = sq(LAMBDAE*ME)*1e33; // перевод 1/Mev^2 в нанобарны
+//const double NBARN = sq(LAMBDAE*ME)*1e33; // ??????? 1/Mev^2 ? ?????????
 
-const double SIGMA_CONST = 1e12*SIGMA_TOMSON * ME*ME/2.; // перевод 1/Mev^2 в пикобарны через томсоновское сечение
-const double SIGMA_CONST2 = 1e12*SIGMA_TOMSON*ME*ME/4.; // перевод 1/Mev^2 в пикобарны через томсоновское сечение
+const double SIGMA_CONST = 1e12*SIGMA_TOMSON * ME*ME/2.; // ??????? 1/Mev^2 ? ????????? ????? ???????????? ???????
+const double SIGMA_CONST2 = 1e12*SIGMA_TOMSON*ME*ME/4.; // ??????? 1/Mev^2 ? ????????? ????? ???????????? ???????
 
-// некоторые математические функции
+// ????????? ?????????????? ???????
 inline double sq(double x)	{ return x*x; }
 inline double cb(double x)  { return x*x*x;}
 inline double max(double x1, double x2)	{ return x1> x2 ? x1 : x2; }

@@ -60,11 +60,16 @@ double ENERGY_ERROR[MAX_POINT_NUMBER]; //energy error
 double EFCOR[MAX_POINT_NUMBER]; //corrections to efisiency
 double LUM[MAX_POINT_NUMBER];
 
-bool ischar(istream &is,char Ch)    {
+long  NGG[MAX_POINT_NUMBER]; //number of  gamma-gamma events
+long  NEE[MAX_POINT_NUMBER]; //number of Bhabha events
+
+bool ischar(istream &is,char Ch) 
+{
     char c;
     is.get(c);
     is.putback(c);
-    if( c == Ch)        {
+    if( c == Ch)
+    {
         return true;
     }
     return false;
@@ -81,7 +86,7 @@ void FillData(istream & file)
   {
 		file >> tmp >> ENERGY[i] >> DELTA[i] >> LUM[i] >>EVENT[i] >> EFCOR[i];
 		//EFCOR[i]=1;
-		LUM[i]/=1000; //перестчет из обратнрых набобарнов в обратные пикобарны
+		LUM[i]/=1000; //????????? ?? ????????? ?????????? ? ???????? ?????????
 		if(file.eof()) break;
 		cout << setw(6) << i+1 << setw(colw) << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(6) << EVENT[i] << setw(5) << EFCOR[i] << endl;
 	}
@@ -126,8 +131,10 @@ void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi reson
     ENERGY[i] = W/2;
     ENERGY_ERROR[i]=dW/2;
     DELTA[i]  = sigmaW_psi2s*pow(W/3686.,2);
-		LUM[i] = lum/=1000; //перестчет из обратнрых набобарнов в обратные пикобарны
+		LUM[i] = lum/=1000; //????????? ?? ????????? ?????????? ? ???????? ?????????
     EFCOR[i] = 1;
+    NEE[i]=Nee;
+    NGG[i]=Ngg;
     file.ignore(65535,'\n');
 		if(file.eof()) break;
 		cout << setw(6) << i+1 << setw(colw) << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(6) << EVENT[i] << setw(5) << EFCOR[i] << endl;
