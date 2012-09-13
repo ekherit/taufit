@@ -41,12 +41,62 @@ TROOT root("Fit tau mass","Fit tau mass", initfuncs);
 
 // For measurement calculation speed.
 #include <ibn/timer.h>
+#include <ibn/averager.h>
 
 
 #include "fit/FitFunctions.h"
 
 
 unsigned DEBUG=0;
+
+double correct_energy(double dmjpsi, double dmpsi2s)
+{
+  double dm1 = dmjpsi/2;
+  double dm2 = dmpsi2s/2;
+  double m2=3686.109/2;
+  double m1=3096.916/2;
+  
+  for(int i=0;i<POINT_NUMBER; i++)
+  {
+    double dE = dm1 + (ENERGY[i]-m1) *  (dm2-dm1) / (m2-m1);
+    double E = ENERGY[i];
+    ENERGY[i] = E - dE;
+    cout << E << " - " << dE << " = " << ENERGY[i] << endl;
+  }
+}
+
+double correct_luminocity(unsigned lumopt=LUM_GG)
+{
+  ibn::averager<double> gg_cross_section_averager;
+  ibn::averager<double> bb_cross_section_averager;
+  double E0 = ENERGY[0];
+  for(int i=0;i<POINT_NUMBER;i++)
+  {
+    if(LUM[i]==0) continue;
+    gg_cross_section_averager.add(NGG[i]*sq(ENERGY[i]/E0)/LUM[i]);
+    bb_cross_section_averager.add(NEE[i]*sq(ENERGY[i]/E0)/LUM[i]);
+  }
+  double ggS0 = gg_cross_section_averager.average();
+  double bbS0 = bb_cross_section_averager.average();
+  cout << "Estimation gamma-gamma cross section: " << ggS0 << " nb" << endl;
+  cout << "Estimation Bhabha cross section: " << bbS0 << " nb" << endl;
+  //to change the luminosity
+  cout << setw(15) << "energy" << setw(15) << "old lum" << setw(15) << "change" << setw(15) << " new lum " << endl;
+  for(int i=0;i<POINT_NUMBER;i++)
+  {
+    double old_lum = LUM[i];
+    switch(lumopt)
+    {
+      case LUM_GG:
+        LUM[i] = NGG[i]*sq(ENERGY[i]/E0)/ggS0;
+        break;
+      case LUM_BB:
+        LUM[i] = NEE[i]*sq(ENERGY[i]/E0)/bbS0;
+        break;
+    }
+    cout << setw(15) << ENERGY[i] << setw(15) << old_lum << setw(15) << LUM[i] - old_lum << setw(15) << LUM[i] << endl;
+  }
+}
 
 using namespace std;
 int main(int argc, char ** argv)
@@ -56,7 +106,14 @@ int main(int argc, char ** argv)
   opt_desc.add_options()
     ("help,h","Print this help")
     ("data",po::value<std::string>()->default_value("scan.txt"), "File with data")
-    ("spread",po::value<double>()->default_value(1.43),"energy spread" )
+    ("spread",po::value<double>()->default_value(1.45514),"energy spread" )
+    ("mjpsi",po::value<double>()->default_value(0.116), "Difference between measurement and PDG mass of the JPSI" )
+    ("mpsi2s",po::value<double>()->default_value(0.096),"Difference between measurement and PDG mass of the PSI2S" )
+    ("dmjpsi",po::value<double>()->default_value(0.072), "Difference between measurement and PDG mass of the JPSI" )
+    ("dmpsi2s",po::value<double>()->default_value(0.122),"Difference between measurement and PDG mass of the PSI2S" )
+    ("lum",po::value<string>()->default_value("gg"), "luminosity  gg - gamma-gamma, bb-Bhabha")
+    ("correct-energy","Apply energy correction to CBS energies")
+    ("correct-efficiency","Apply efficiency corrections from file effcor.dat")
     ("ivanos","Draw lfcn")
     ("novp", "No vacuum polarization")
 //    ("fix","Fix parameter")
@@ -92,6 +149,35 @@ int main(int argc, char ** argv)
 	cout << "Reading data from file " << filename << endl;
 
 	FillData2(file,Sw);
+  if(opt.count("correct-energy"))
+  {
+    cout << "Correct CBS energies: " << endl;
+    correct_energy(opt["mjpsi"].as<double>(), opt["mpsi2s"].as<double>());
+  }
+
+  if(opt.count("correct-efficiency"))
+  {
+    cout << "Correct efficiency from file: " << "effcor.dat" << endl;
+    ifstream file("effcor.dat");
+    if(!file)
+    {
+      cerr << " No efficiency correction file: " << "effcor.dat" << endl;
+      exit(1);
+    }
+    for(int i=0; !file.eof() && i<POINT_NUMBER; i++)
+    {
+      file >> EFCOR[i];
+      cout <<  i << " " << EFCOR[i] << endl;
+    }
+  }
+
+  if(opt.count("lum"))
+  {
+    string s = opt["lum"].as<string>();
+    if(s=="gg") LUMINOCITY = LUM_GG;
+    if(s=="bb") LUMINOCITY = LUM_BB;
+    correct_luminocity(LUMINOCITY);
+  }
 	//FillData(file);
 	TGraphErrors * data_gr = DataGraph("r_{i} \\varepsilon \\sigma(e^{+}e^{-}\\rightarrow \\tau^{+}\\tau^{-}) + \\sigma_{B}");
 	
@@ -112,7 +198,8 @@ int main(int argc, char ** argv)
  	minuit->SetErrorDef(0.5);
 	minuit->mnparm( 0, "MTAU",    0,   0.5,  0, 0, ierflg);
 	minuit->mnparm( 1,  "EFF",  0.01,   0.2,   0,  1, ierflg);
-	minuit->mnparm( 2,   "BG",    1,     0.5,   0,  100000, ierflg);
+//	minuit->mnparm( 2,   "BG",    1,     0.5,   0,  100000, ierflg);
+	minuit->mnparm( 2,   "BG",    1,     0.5,   0,  0, ierflg);
 	arglist[0]=2;
 	minuit->mnexcm("SET STR", arglist ,1,ierflg);
 	minuit->Migrad();
@@ -139,6 +226,12 @@ int main(int argc, char ** argv)
   double dEPS = erpar[1]*100; 
   double BG = abs(par[2]); //background
   double dBG = abs(erpar[2]); //background
+
+  //int npar=3;
+  //double fcn=0;
+  //int iflag=0;
+  //Lfcn(npar,0,fcn, par,iflag);
+  //cout << "2*L/ndf = " << fcn*2<<"/("<<POINT_NUMBER<<"-"<<npar<<")="<< 2*fcn/(POINT_NUMBER-npar) << endl;
   char buf[1024];
   sprintf(buf, "MTAU   = %7.2f +- %4.2f MeV", M , erpar[0]);
   cout << buf << endl;

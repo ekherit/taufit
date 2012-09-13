@@ -63,6 +63,15 @@ double LUM[MAX_POINT_NUMBER];
 long  NGG[MAX_POINT_NUMBER]; //number of  gamma-gamma events
 long  NEE[MAX_POINT_NUMBER]; //number of Bhabha events
 
+
+enum 
+{
+  LUM_GG,
+  LUM_BB
+};
+
+unsigned LUMINOCITY=LUM_GG;
+
 bool ischar(istream &is,char Ch) 
 {
     char c;
@@ -113,6 +122,7 @@ void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi reson
   unsigned Nee;
   unsigned Ngg;
 	int colw=20;
+  double efcor;
 	cout << setw(6) << "POINT"<<setw(colw)<<"E[MeV]"<<setw(colw) << "DELTA[MeV]" << setw(colw) << "LUM[1/pb]"  << setw(6) << "N"   << setw(5) << "R" << endl; 
 	int i;
 	for(i=0; !file.eof(); i++)
@@ -126,18 +136,18 @@ void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi reson
     }
 		if(file.eof()) break;
     file.putback(c);
-    file >> tmp >> lum >> W >> dW >> Sw >> dSw  >>  Ntt >> Nee >> Ngg;
+    file >> tmp >> lum >> W >> dW >> Sw >> dSw  >>  Ntt >> Nee >> Ngg >> efcor;
     EVENT[i] = Ntt;
     ENERGY[i] = W/2;
     ENERGY_ERROR[i]=dW/2;
-    DELTA[i]  = sigmaW_psi2s*pow(W/3686.,2);
+    DELTA[i]  = sigmaW_psi2s*pow(W/3686.109,2);
 		LUM[i] = lum/=1000; //????????? ?? ????????? ?????????? ? ???????? ?????????
-    EFCOR[i] = 1;
+    EFCOR[i] = efcor;
     NEE[i]=Nee;
     NGG[i]=Ngg;
     file.ignore(65535,'\n');
 		if(file.eof()) break;
-		cout << setw(6) << i+1 << setw(colw) << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(6) << EVENT[i] << setw(5) << EFCOR[i] << endl;
+		cout << setw(6) << i+1 << setw(colw) << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(8) << EVENT[i] << setw(12) << EFCOR[i] << endl;
 	}
 	POINT_NUMBER = i;
 	cout << "POINT_NUMBER=" << POINT_NUMBER << endl;
@@ -397,8 +407,10 @@ TGraphErrors * DataGraph(const char * title)
 	double Ser[MAX_POINT_NUMBER];
 	for(int i = 0; i < POINT_NUMBER; i++ )
   {
-		S[i] = EVENT[i]/LUM[i];
-		Ser[i] = sqrt(EVENT[i])/LUM[i];
+		S[i] = EVENT[i]/LUM[i]/EFCOR[i];
+		Ser[i] = sqrt(EVENT[i])/LUM[i]/EFCOR[i];
+		//S[i] = EVENT[i]/LUM[i];
+		//Ser[i] = sqrt(EVENT[i])/LUM[i];
     cout << i << " " << ENERGY[i] << " " << LUM[i] << " " << EVENT[i] << " " << S[i] << endl;
 	}
 	TGraphErrors * gr = new TGraphErrors(POINT_NUMBER, ENERGY,S,ENERGY_ERROR,Ser);
