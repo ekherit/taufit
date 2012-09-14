@@ -48,6 +48,7 @@ TROOT root("Fit tau mass","Fit tau mass", initfuncs);
 
 
 unsigned DEBUG=0;
+std::string EFFCOR_FILENAME="effcor.dat";
 
 double correct_energy(double dmjpsi, double dmpsi2s)
 {
@@ -114,6 +115,7 @@ int main(int argc, char ** argv)
     ("lum",po::value<string>()->default_value("gg"), "luminosity  gg - gamma-gamma, bb-Bhabha")
     ("correct-energy","Apply energy correction to CBS energies")
     ("correct-efficiency","Apply efficiency corrections from file effcor.dat")
+    ("effcor",po::value<string>(&EFFCOR_FILENAME), "Efficiency correction file. Default value is effcor.dat ")
     ("ivanos","Draw lfcn")
     ("novp", "No vacuum polarization")
 //    ("fix","Fix parameter")
@@ -155,10 +157,10 @@ int main(int argc, char ** argv)
     correct_energy(opt["mjpsi"].as<double>(), opt["mpsi2s"].as<double>());
   }
 
-  if(opt.count("correct-efficiency"))
+  if(opt.count("correct-efficiency") || opt.count("effcor"))
   {
-    cout << "Correct efficiency from file: " << "effcor.dat" << endl;
-    ifstream file("effcor.dat");
+    cout << "Correct efficiency from file: " << EFFCOR_FILENAME << endl;
+    ifstream file(EFFCOR_FILENAME.c_str());
     if(!file)
     {
       cerr << " No efficiency correction file: " << "effcor.dat" << endl;
