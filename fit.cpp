@@ -26,6 +26,8 @@
 
 #include <TCanvas.h>
 #include <TGraph.h>
+#include <TGraphErrors.h>
+#include <TMultiGraph.h>
 #include <TH1D.h>
 #include <TAxis.h>
 #include <TLatex.h>
@@ -220,6 +222,9 @@ int main(int argc, char ** argv)
   }
 	//FillData(file);
 	TGraphErrors * data_gr = DataGraph("r_{i} \\varepsilon \\sigma(e^{+}e^{-}\\rightarrow \\tau^{+}\\tau^{-}) + \\sigma_{B}");
+  data_gr->SetLineWidth(2);
+  data_gr->SetMarkerSize(1);
+  data_gr->SetMarkerStyle(20);
 	
 	TMinuit *minuit = new TMinuit(3); 
 	minuit->SetFCN(Lfcn);
@@ -267,12 +272,6 @@ int main(int argc, char ** argv)
   double BG = abs(par[2]); //background
   double dBG = abs(erpar[2]); //background
 
-  //int npar=3;
-  //double fcn=0;
-  //int iflag=0;
-  //Lfcn(npar,0,fcn, par,iflag);
-  //cout << "2*L/ndf = " << fcn*2<<"/("<<POINT_NUMBER<<"-"<<npar<<")="<< 2*fcn/(POINT_NUMBER-npar) << endl;
-
   char buf[1024];
   sprintf(buf, "MTAU   = %8.3f +- %5.3f MeV  = %1$8.3f %+5.3f %+5.3f MeV", M , erpar[0], minuit->fErp[0],minuit->fErn[0]);
   cout << buf << endl;
@@ -305,11 +304,15 @@ int main(int argc, char ** argv)
 
 	TCanvas * sigma_c = new TCanvas("sigma", "sigma", 1.2*640,1.2*480); 
 	sigma_c->SetGrid();
-	data_gr->Draw("ap");
+  TMultiGraph * mg = new TMultiGraph;
 	TGraph * fit_gr = SigmaGraph(par[0],par[1],par[2],200);
-	fit_gr->Draw("c");
-  data_gr->GetXaxis()->SetTitle("E, MeV");
-  data_gr->GetYaxis()->SetTitle("#sigma_{obs}, pb");
+  fit_gr->SetLineWidth(2);
+  fit_gr->SetLineColor(kRed);
+  mg->Add(fit_gr,"c");
+  mg->Add(data_gr,"p");
+  mg->Draw("a");
+  mg->GetXaxis()->SetTitle("E, MeV");
+  mg->GetYaxis()->SetTitle("#sigma_{obs}, pb");
 
   double x,y;
   x=M-5;
