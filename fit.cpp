@@ -29,6 +29,7 @@
 #include <TH1D.h>
 #include <TAxis.h>
 #include <TLatex.h>
+#include <TRandom.h>
 
 
 #include <TROOT.h>
@@ -49,6 +50,11 @@ TROOT root("Fit tau mass","Fit tau mass", initfuncs);
 
 unsigned DEBUG=0;
 std::string EFFCOR_FILENAME="effcor.dat";
+std::string OUTPUT_PREFIX="tau";
+double ENERGY_VARIATION=0.01;
+double EFFICIENCY_VARIATION=0.005;
+std::string RESULT_FILE="fitresult.txt";
+int SEED=0;
 
 double correct_energy(double dmjpsi, double dmpsi2s)
 {
@@ -116,9 +122,14 @@ int main(int argc, char ** argv)
     ("correct-energy","Apply energy correction to CBS energies")
     ("correct-efficiency","Apply efficiency corrections from file effcor.dat")
     ("effcor",po::value<string>(&EFFCOR_FILENAME), "Efficiency correction file. Default value is effcor.dat ")
+    ("output-prefix",po::value<string>(&OUTPUT_PREFIX), "Prefix to save dat into file *.root and *.pdf")
     ("ivanos","Draw lfcn")
     ("novp", "No vacuum polarization")
-//    ("fix","Fix parameter")
+    ("exit", "exit after fitting")
+    ("variate-energy",po::value<double>(&ENERGY_VARIATION), "Variate point energy")
+    ("variate-efficiency",po::value<double>(&EFFICIENCY_VARIATION), "Variate efficiency correction")
+    ("seed",po::value<int>(&SEED), "Random seed")
+    ("fitresult",po::value<std::string>(&RESULT_FILE), "Result file")
     ;
   po::positional_options_description pos;
   pos.add("data",-1);
@@ -180,6 +191,33 @@ int main(int argc, char ** argv)
     if(s=="bb") LUMINOCITY = LUM_BB;
     correct_luminocity(LUMINOCITY);
   }
+
+  if(opt.count("variate-energy"))
+  {
+    cout << "Variate energy in each point on: " << ENERGY_VARIATION << " MeV" << endl;
+    cout << "Random seed is " << SEED << endl;
+    TRandom r(SEED);
+    cout << setw(5) << "point" << setw(15) << "variation, MeV"  << setw(15) << "new energy, MeV" << endl;
+    for(int i=0;i<POINT_NUMBER;i++)
+    {
+      double dE = ENERGY_VARIATION*r.Gaus();
+      ENERGY[i] = ENERGY[i] + dE;
+      cout << setw(5) << i+1 << setw(15) << dE << setw(15) << ENERGY[i] << endl;
+    }
+  }
+  if(opt.count("variate-efficiency"))
+  {
+    cout << "Variate efficiency in each point on: " << 100*EFFICIENCY_VARIATION << "%" << endl;
+    cout << "Random seed is " << SEED << endl;
+    TRandom r(SEED);
+    cout << setw(5) << "point" << setw(15) << "variation"  << setw(15) << "new effcor" << endl;
+    for(int i=0;i<POINT_NUMBER;i++)
+    {
+      double dEPS = EFFICIENCY_VARIATION*r.Gaus();
+      EFCOR[i] = EFCOR[i]+EFCOR[i]*dEPS;
+      cout << setw(5) << i+1 << setw(15) << dEPS << setw(15) << EFCOR[i] << endl;
+    }
+  }
 	//FillData(file);
 	TGraphErrors * data_gr = DataGraph("r_{i} \\varepsilon \\sigma(e^{+}e^{-}\\rightarrow \\tau^{+}\\tau^{-}) + \\sigma_{B}");
 	
@@ -234,12 +272,37 @@ int main(int argc, char ** argv)
   //int iflag=0;
   //Lfcn(npar,0,fcn, par,iflag);
   //cout << "2*L/ndf = " << fcn*2<<"/("<<POINT_NUMBER<<"-"<<npar<<")="<< 2*fcn/(POINT_NUMBER-npar) << endl;
+
   char buf[1024];
-  sprintf(buf, "MTAU   = %7.2f +- %4.2f MeV", M , erpar[0]);
+  sprintf(buf, "MTAU   = %8.3f +- %5.3f MeV  = %1$8.3f %+5.3f %+5.3f MeV", M , erpar[0], minuit->fErp[0],minuit->fErn[0]);
   cout << buf << endl;
-  sprintf(buf, "M-MPDG = %7.2f +- %4.2f MeV", par[0], erpar[0]);
+
+  sprintf(buf, "M-MPDG = %8.3f +- %5.3f MeV", par[0], erpar[0]);
   cout << buf << endl;
-  //cout << "M - MPDG = " <<  par[0] << " +- " <<  erpar[0] << " MeV" << endl;
+  
+  sprintf(buf,"EPS = %3.1f %+3.1f %+3.1f pb", EPS, minuit->fErp[1]*100,minuit->fErn[1]*100);
+  cout << buf << endl;
+
+  sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", BG, minuit->fErp[2],minuit->fErn[2]);
+  cout << buf << endl;
+
+
+
+  ofstream result_file(RESULT_FILE.c_str(), fstream::app);
+  if(!result_file)
+  {
+    cerr << "Unable to open file " << RESULT_FILE << endl;
+  }
+  sprintf(buf,"%8.3f  %+5.3f  %+5.3f  %4.2f  %+4.2f  %+4.2f  %4.2f  %+4.2f  %+4.2f",
+      M,       minuit->fErp[0],      minuit->fErn[0],
+      EPS, minuit->fErp[1]*100,  minuit->fErn[1]*100,
+      BG,      minuit->fErp[2],      minuit->fErn[2]
+      );
+  result_file << buf << endl;
+  result_file.close();
+
+
+
 	TCanvas * sigma_c = new TCanvas("sigma", "sigma", 1.2*640,1.2*480); 
 	sigma_c->SetGrid();
 	data_gr->Draw("ap");
@@ -256,8 +319,8 @@ int main(int argc, char ** argv)
   y=v.back();
 
   char texbuf[1024];
-  //sprintf(texbuf,"M_{#tau} = %7.2f #pm %4.2f^{%+4.2f}_{%+4.2f} MeV", M, dM, minuit->fErp[0],minuit->fErn[0]);
-  sprintf(texbuf,"M_{#tau} = %7.2f^{%+4.2f}_{%+4.2f} MeV", M, minuit->fErp[0],minuit->fErn[0]);
+  //sprintf(texbuf,"M_{#tau} = %8.3f #pm %5.3f^{%+4.2f}_{%+4.2f} MeV", M, dM, minuit->fErp[0],minuit->fErn[0]);
+  sprintf(texbuf,"M_{#tau} = %8.3f^{%+4.2f}_{%+4.2f} MeV", M, minuit->fErp[0],minuit->fErn[0]);
   TLatex Mtex(x,y,texbuf);
   Mtex.Draw();
   sprintf(texbuf,"#varepsilon = %3.1f #pm %3.1f %%", EPS, dEPS);
@@ -268,9 +331,20 @@ int main(int argc, char ** argv)
   TLatex BGtex(x,y*0.8,texbuf);
   BGtex.Draw();
 
-  sprintf(texbuf,"M_{#tau}-M_{PDG} =%4.2f #pm %4.2f MeV ",M-MTAUSHIFT , sqrt(dM*dM + DMTAU_PDG*DMTAU_PDG));
-  TLatex DMtex(x,y*0.6,texbuf);
+  sprintf(texbuf,"M_{#tau}-M_{PDG} =%5.3f #pm %4.2f MeV ",M-MTAUSHIFT , sqrt(dM*dM + DMTAU_PDG*DMTAU_PDG));
+  TLatex DMtex(1783,y*0.3,texbuf);
   DMtex.Draw();
+
+
+  if(opt.count("output-prefix"))
+  {
+    char pdf_file[1024];
+    char root_file[1024];
+    sprintf(pdf_file, "%s.pdf", OUTPUT_PREFIX.c_str());
+    sprintf(root_file, "%s.root", OUTPUT_PREFIX.c_str());
+    gPad->SaveAs(pdf_file);
+    gPad->SaveAs(root_file);
+  }
 
   TGraphErrors * glum = new TGraphErrors(POINT_NUMBER);
   for(int i=0;i<POINT_NUMBER; i++)
@@ -284,8 +358,7 @@ int main(int argc, char ** argv)
   glum->SetMarkerStyle(21);
   glum->Draw("ap");
 
-  theApp.Run();
-
+  if(!opt.count("exit")) theApp.Run();
   return 0;
 }
 
