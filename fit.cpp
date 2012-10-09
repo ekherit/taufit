@@ -191,7 +191,7 @@ int main(int argc, char ** argv)
   {
     string s = opt["lum"].as<string>();
     if(s=="gg") LUMINOCITY = LUM_GG;
-    if(s=="bb") LUMINOCITY = LUM_BB;
+    if(s=="bb"|| s=="ee") LUMINOCITY = LUM_BB;
     correct_luminocity(LUMINOCITY);
   }
 
