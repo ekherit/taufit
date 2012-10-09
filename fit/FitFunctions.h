@@ -109,7 +109,8 @@ void FillData(istream & file)
 	cout << "TOTAL LUMINOCITY=" <<lum << endl;
 }
 
-void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi resonance */)
+//void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi resonance */)
+void FillData2(istream & file, double sigmaW_mtauPDG /* energy spread at mtau */)
 {
 	double tmp;
   double Sw; 
@@ -140,7 +141,8 @@ void FillData2(istream & file, double sigmaW_psi2s /* energy spread at psi reson
     EVENT[i] = Ntt;
     ENERGY[i] = W/2;
     ENERGY_ERROR[i]=dW/2;
-    DELTA[i]  = sigmaW_psi2s*pow(W/3686.109,2);
+    //DELTA[i]  = sigmaW_psi2s*pow(W/3686.109,2);
+    DELTA[i]  = sigmaW_mtauPDG*pow(W/2./MTAU_PDG2011,2);
 		LUM[i] = lum/=1000; //????????? ?? ????????? ?????????? ? ???????? ?????????
     EFCOR[i] = efcor;
     NEE[i]=Nee;
