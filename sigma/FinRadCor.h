@@ -14,11 +14,11 @@
 
 #include <TMath.h> 
 
-inline double Fc(double v); // Кулоновское взаимодейсвтие в конечном состоянии 
+inline double Fc(double v); // п я┐п╩п╬п╫п╬п╡я│п╨п╬п╣ п╡п╥п╟п╦п╪п╬п╢п╣п╧я│п╡я┌п╦п╣ п╡ п╨п╬п╫п╣я┤п╫п╬п╪ я│п╬я│я┌п╬я▐п╫п╦п╦ 
 inline double vFc(double v); // Fc * v
-inline double Fr(double v);  //радиационные поправки (петлевые и всякая хрень)
+inline double Fr(double v);  //я─п╟п╢п╦п╟я├п╦п╬п╫п╫я▀п╣ п©п╬п©я─п╟п╡п╨п╦ (п©п╣я┌п╩п╣п╡я▀п╣ п╦ п╡я│я▐п╨п╟я▐ я┘я─п╣п╫я▄)
 
-// Некоторые вспомогательные функции 
+// п²п╣п╨п╬я┌п╬я─я▀п╣ п╡я│п©п╬п╪п╬пЁп╟я┌п╣п╩я▄п╫я▀п╣ я└я┐п╫п╨я├п╦п╦ 
 
 static const double PRECISION=1e-10;
 static const int LI2MAXORDER = 2000;
@@ -161,7 +161,7 @@ class h_sub2
 
 inline double h_int(double v, double mt=MTAU)
 {
-    //Попытка вычислить h прямым интегрированием.
+    //п÷п╬п©я▀я┌п╨п╟ п╡я▀я┤п╦я│п╩п╦я┌я▄ h п©я─я▐п╪я▀п╪ п╦п╫я┌п╣пЁя─п╦я─п╬п╡п╟п╫п╦п╣п╪.
     double lambda = ALPHA/2./v;
     double zv = ME/mt/v;
     complex<double> tmp=ibn::dgaus_comp(h_sub2(zv,lambda) , 0, 1, PRECISION); 
@@ -344,9 +344,9 @@ class FinRadCor
 //static FinRadCor FRC(1e-3,0.2,0.0); 
 
 //static FSRC fsrc(1e-5,0.2,0.0); 
-//static FSRC fsrc(1e-5,0.3,0.0);  убрал, так как точка 1888 не попадает.
-static FSRC fsrc(1e-6,0.4,0.0);  //расширил диапазон и добавил точности.
-// 0.4 --- до 1940 Mev
+//static FSRC fsrc(1e-5,0.3,0.0);  я┐п╠я─п╟п╩, я┌п╟п╨ п╨п╟п╨ я┌п╬я┤п╨п╟ 1888 п╫п╣ п©п╬п©п╟п╢п╟п╣я┌.
+static FSRC fsrc(1e-6,0.4,0.0);  //я─п╟я│я┬п╦я─п╦п╩ п╢п╦п╟п©п╟п╥п╬п╫ п╦ п╢п╬п╠п╟п╡п╦п╩ я┌п╬я┤п╫п╬я│я┌п╦.
+// 0.4 --- п╢п╬ 1940 Mev
 // 0.3 - 1862
 // 0.2   1813
 // 0.1   1785

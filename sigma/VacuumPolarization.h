@@ -21,13 +21,13 @@ inline double Vp(double s, double mtau = MTAU)
   double S=s*1e-6;
   double ReH=0,ImH=0,ReL=0,ImL=0;
   double Re, Im;
-  vp::lepton(s,&ReL,&ImL,mtau);  // Считаем лептонную часть поляризации
+  vp::lepton(s,&ReL,&ImL,mtau);  // п║я┤п╦я┌п╟п╣п╪ п╩п╣п©я┌п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
   if(!VP_LIB_INIT)
   {
     vp_init();
     VP_LIB_INIT=true;
   }
-  vp_hadron(&S,&ReH,&ImH);  // Считаем адронную часть поляризации
+  vp_hadron(&S,&ReH,&ImH);  // п║я┤п╦я┌п╟п╣п╪ п╟п╢я─п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
   Re=ReL+ReH;
   Im=ImL+ImH;
   cout << "S = " << s << " ReL=" << ReL << " ImL=" << ImL << "  ReH=" << ReH << " ImH=" << ImH << endl;
@@ -39,8 +39,8 @@ inline double Vp_old(double S)
   S=S*1e-6;
   double ReH=0,ImH=0,ReL=0,ImL=0;
   double Re, Im;
-  vp_lepton(&S,&ReL,&ImL);  // Считаем лептонную часть поляризации
-  vp_hadron(&S,&ReH,&ImH);  // Считаем адронную часть поляризации
+  vp_lepton(&S,&ReL,&ImL);  // п║я┤п╦я┌п╟п╣п╪ п╩п╣п©я┌п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
+  vp_hadron(&S,&ReH,&ImH);  // п║я┤п╦я┌п╟п╣п╪ п╟п╢я─п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
   Re=ReL+ReH;
   Im=ImL+ImH;
   return 1./((1.-Re)*(1.-Re) + Im*Im);
@@ -51,7 +51,7 @@ inline double Vp_hadron(double S)
   S=S*1e-6;
   double ReH=0,ImH=0;
   double Re, Im;
-  vp_hadron(&S,&ReH,&ImH);  // Считаем адронную часть поляризации
+  vp_hadron(&S,&ReH,&ImH);  // п║я┤п╦я┌п╟п╣п╪ п╟п╢я─п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
   //std::cout << sqrt(S) << "  " << ReH << "    " << ImH << std::endl;
   Re=ReH;
   Im=ImH;
@@ -81,7 +81,7 @@ inline double Vp_lepton(double S)
   S=S*1e-6;
   double ReL=0,ImL=0;
   double Re, Im;
-  vp_lepton(&S,&ReL,&ImL);  // Считаем лептонную часть поляризации
+  vp_lepton(&S,&ReL,&ImL);  // п║я┤п╦я┌п╟п╣п╪ п╩п╣п©я┌п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
   Re=ReL;
   Im=ImL;
   return 1./((1.-Re)*(1.-Re) + Im*Im);
@@ -102,8 +102,8 @@ inline double VP_tau2(double S,double mt)
   return 1.0 + 3.31163e-2 - 1.06988e-4*x - 4.56869e-6*x*x + 1.22004e-7*x*x*x - 3.21668e-9*x*x*x*x;
 }
 
-/* Подгонка в диапазоне от 0 до + 50 MeV полиномом девятой степени
-   здесь все в куче и лептонная и адронная часть. 
+/* п÷п╬п╢пЁп╬п╫п╨п╟ п╡ п╢п╦п╟п©п╟п╥п╬п╫п╣ п╬я┌ 0 п╢п╬ + 50 MeV п©п╬п╩п╦п╫п╬п╪п╬п╪ п╢п╣п╡я▐я┌п╬п╧ я│я┌п╣п©п╣п╫п╦
+   п╥п╢п╣я│я▄ п╡я│п╣ п╡ п╨я┐я┤п╣ п╦ п╩п╣п©я┌п╬п╫п╫п╟я▐ п╦ п╟п╢я─п╬п╫п╫п╟я▐ я┤п╟я│я┌я▄. 
    FCN=64.7929 FROM MIGRAD    STATUS=FAILED        822 CALLS         823 TOTAL
    EDM=2.24267e-12    STRATEGY= 1      ERR MATRIX NOT POS-DEF
    EXT PARAMETER                APPROXIMATE        STEP         FIRST   
@@ -121,13 +121,13 @@ inline double VP_tau2(double S,double mt)
    */
 
 /*
-   Подгонка в области пси штриха в подложке 1836 до 1839 МэВ
+   п÷п╬п╢пЁп╬п╫п╨п╟ п╡ п╬п╠п╩п╟я│я┌п╦ п©я│п╦ я┬я┌я─п╦я┘п╟ п╡ п©п╬п╢п╩п╬п╤п╨п╣ 1836 п╢п╬ 1839 п°я█п▓
    EXT PARAMETER                APPROXIMATE        STEP         FIRST   
    NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
    1  p0          -9.70098e+03   2.63572e+00   2.91029e-01  -1.98432e-10
    2  p1           1.05745e+01   1.43446e-03   3.17234e-04   6.31486e-07
    3  p2          -2.88166e-03   7.80587e-07   8.64498e-08  -6.11931e-04
-   Картинка лежит в result/tau06/vp-psi2-zoom-fit.eps
+   п п╟я─я┌п╦п╫п╨п╟ п╩п╣п╤п╦я┌ п╡ result/tau06/vp-psi2-zoom-fit.eps
 
 */
 inline double VP_pol9( double S, double mt)
@@ -185,8 +185,8 @@ inline double Vpol(double g2)
   double S=g2*1e-6*MTAU2;
   double ReH,ImH,ReL,ImL;
   double Re, Im;
-  vp_lepton(&S,&ReL,&ImL);  // Считаем лептонную часть поляризации
-  vp_hadron(&S,&ReH,&ImH);  // Считаем адронную часть поляризации
+  vp_lepton(&S,&ReL,&ImL);  // п║я┤п╦я┌п╟п╣п╪ п╩п╣п©я┌п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
+  vp_hadron(&S,&ReH,&ImH);  // п║я┤п╦я┌п╟п╣п╪ п╟п╢я─п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
   Re=ReL+ReH;
   Im=ImL+ImH;
   return 1./((1.-Re)*(1.-Re) + Im*Im);
@@ -206,8 +206,8 @@ double vp_ROOT(double *x, double *p)
   S=E*E;
   if(E<0) S=-S;
 
-  vp_lepton(&S,&ReL,&ImL);  // Считаем лептонную часть поляризации
-  vp_hadron(&S,&ReH,&ImH);  // Считаем адронную часть поляризации
+  vp_lepton(&S,&ReL,&ImL);  // п║я┤п╦я┌п╟п╣п╪ п╩п╣п©я┌п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
+  vp_hadron(&S,&ReH,&ImH);  // п║я┤п╦я┌п╟п╣п╪ п╟п╢я─п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
   //vp_hadron_err(&S,&D_Re,&D_Im,&D_ReIm);
   //E_Re=sqrt(D_Re);
   //E_Im=sqrt(D_Im);
@@ -379,16 +379,16 @@ class VPHtab
   }
 };
 
-static VPtab VPT(1820,1910,0.001);  //расширил диапазон и добавил точности.
-static VPHtab VPHT(MTAU,100,0.01);  //расширил диапазон и добавил точности.
+static VPtab VPT(1820,1910,0.001);  //я─п╟я│я┬п╦я─п╦п╩ п╢п╦п╟п©п╟п╥п╬п╫ п╦ п╢п╬п╠п╟п╡п╦п╩ я┌п╬я┤п╫п╬я│я┌п╦.
+static VPHtab VPHT(MTAU,100,0.01);  //я─п╟я│я┬п╦я─п╦п╩ п╢п╦п╟п©п╟п╥п╬п╫ п╦ п╢п╬п╠п╟п╡п╦п╩ я┌п╬я┤п╫п╬я│я┌п╦.
 
-//Лептонную часть считаю сам, а адронную по таблице.
+//п⌡п╣п©я┌п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ я│я┤п╦я┌п╟я▌ я│п╟п╪, п╟ п╟п╢я─п╬п╫п╫я┐я▌ п©п╬ я┌п╟п╠п╩п╦я├п╣.
 inline double Vp2(double s, double mtau = MTAU)
 {
   double S=s*1e-6;
   double ReH=0,ImH=0,ReL=0,ImL=0;
   double Re, Im;
-  vp::lepton(s,&ReL,&ImL,mtau);  // Считаем лептонную часть поляризации
+  vp::lepton(s,&ReL,&ImL,mtau);  // п║я┤п╦я┌п╟п╣п╪ п╩п╣п©я┌п╬п╫п╫я┐я▌ я┤п╟я│я┌я▄ п©п╬п╩я▐я─п╦п╥п╟я├п╦п╦
   VPHT.vp(s, ReH, ImH);
   Re=ReL+ReH;
   Im=ImL+ImH;

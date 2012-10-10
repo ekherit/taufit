@@ -131,7 +131,7 @@ inline double sigma_tree_fc_vp_fsrc( double s, double mt)
   double frc=1; //final state radiative corrections
   if(DEBUG==1) cout << "s="<<s <<", mt=" << mt << std::endl;
 	if(std::isnan(s) || std::isinf(s)) std::cout << "Bad s=" << s << std::endl;
-  // òÁÂÏÞÁÑ ÆÕÎËÃÉÑ ÄÌÑ ÉÎÔÅÇÒÉÒÏ×ÁÎÉÑ. õÞÔÅÎÙ ×ÓÅ ÐÏÐÒÁ×ËÉ × ËÏÎÅÞÎÏÍ ÓÏÓÓÔÏÑÎÉÉ É ÐÏÌÑÒÉÚÁÃÉÑ ×ÁËÕÕÍÁ.
+  // Ð Ð°Ð±Ð¾Ñ‡Ð°Ñ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ñ Ð´Ð»Ñ Ð¸Ð½Ñ‚ÐµÐ³Ñ€Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ. Ð£Ñ‡Ñ‚ÐµÐ½Ñ‹ Ð²ÑÐµ Ð¿Ð¾Ð¿Ñ€Ð°Ð²ÐºÐ¸ Ð² ÐºÐ¾Ð½ÐµÑ‡Ð½Ð¾Ð¼ ÑÐ¾ÑÑÑ‚Ð¾ÑÐ½Ð¸Ð¸ Ð¸ Ð¿Ð¾Ð»ÑÑ€Ð¸Ð·Ð°Ñ†Ð¸Ñ Ð²Ð°ÐºÑƒÑƒÐ¼Ð°.
 	if ( is_below_threshold(s,mt) ) return 0;
 	v=velocity(s,mt);
 	vfc=vFc(v);
@@ -234,7 +234,7 @@ double sigma1(double *x, double *p)	{
 	return sigma_final_radcor(s, mt);
 }
 */
-/*ðÏÄÉÎÔÅÇÒÁÌØÎÏÅ ×ÙÒÁÖÅÎÉÅ ÄÌÑ ÉÓÐÏÌØÚÏ×ÁÎÉÑ × ÁÌÇÏÒÉÔÍÅ ÉÎÔÅÇÒÉÒÏ×ÁÎÉÑ */
+/*ÐŸÐ¾Ð´Ð¸Ð½Ñ‚ÐµÐ³Ñ€Ð°Ð»ÑŒÐ½Ð¾Ðµ Ð²Ñ‹Ñ€Ð°Ð¶ÐµÐ½Ð¸Ðµ Ð´Ð»Ñ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ð½Ð¸Ñ Ð² Ð°Ð»Ð³Ð¾Ñ€Ð¸Ñ‚Ð¼Ðµ Ð¸Ð½Ñ‚ÐµÐ³Ñ€Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ */
 
 
 class F_sigma
@@ -252,7 +252,7 @@ class F_sigma
 
 
 
-// óÅÞÅÎÉÅ Ó ÕÞÅÔÏÍ ×ÓÅÈ ÒÁÄÐÏÐÒÁ×ÏË.
+// Ð¡ÐµÑ‡ÐµÐ½Ð¸Ðµ Ñ ÑƒÑ‡ÐµÑ‚Ð¾Ð¼ Ð²ÑÐµÑ… Ñ€Ð°Ð´Ð¿Ð¾Ð¿Ñ€Ð°Ð²Ð¾Ðº.
 inline double sigma_all_radcor_sing(double s, double mt, double prec)
 {
 	double eps = 1. - sq(2*mt)/s;	
@@ -352,7 +352,7 @@ public:
 	}
 };
 */
-// óÅÞÅÎÉÅ Ó ÕÞÅÔÏÍ ×ÓÅÈ ÒÁÄÐÏÐÒÁ×ÏË.
+// Ð¡ÐµÑ‡ÐµÐ½Ð¸Ðµ Ñ ÑƒÑ‡ÐµÑ‚Ð¾Ð¼ Ð²ÑÐµÑ… Ñ€Ð°Ð´Ð¿Ð¾Ð¿Ñ€Ð°Ð²Ð¾Ðº.
 inline double sigma_all_radcor(double s, double mt, double prec)
 {
 	if ( NO_INI_RADCOR )
@@ -386,7 +386,7 @@ inline double sigma_all_radcor(double s, double mt, double prec)
 	//cout << "f_reg_lnx="<< integ << endl;
 	//return I;
 
-	//éÚÌÕÞÅÎÉÅ ÜÌÅËÔÒÏÎ-ÐÏÚÉÔÒÏÎÎÙÈ ÐÁÒ Ó ÎÁÞÁÌØÎÏÇÏ ÓÏÓÔÏÑÎÉÑ.
+	//Ð˜Ð·Ð»ÑƒÑ‡ÐµÐ½Ð¸Ðµ ÑÐ»ÐµÐºÑ‚Ñ€Ð¾Ð½-Ð¿Ð¾Ð·Ð¸Ñ‚Ñ€Ð¾Ð½Ð½Ñ‹Ñ… Ð¿Ð°Ñ€ Ñ Ð½Ð°Ñ‡Ð°Ð»ÑŒÐ½Ð¾Ð³Ð¾ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ñ.
 	/*
 	ymax = log(xmax);
 	ymin = log(4*ME/sqrt(s));
@@ -443,14 +443,14 @@ inline double sigma_all_radcor2(double s, double mt, double prec)	{
 	integ = b*b/4. * svertka_reg(fregln,sigm,y2,0,sqrt(xmax),prec) ;
 	I+=integ;
 
-	//éÚÌÕÞÅÎÉÅ ÜÌÅËÔÒÏÎ-ÐÏÚÉÔÒÏÎÎÙÈ ÐÁÒ Ó ÎÁÞÁÌØÎÏÇÏ ÓÏÓÔÏÑÎÉÑ.
+	//Ð˜Ð·Ð»ÑƒÑ‡ÐµÐ½Ð¸Ðµ ÑÐ»ÐµÐºÑ‚Ñ€Ð¾Ð½-Ð¿Ð¾Ð·Ð¸Ñ‚Ñ€Ð¾Ð½Ð½Ñ‹Ñ… Ð¿Ð°Ñ€ Ñ Ð½Ð°Ñ‡Ð°Ð»ÑŒÐ½Ð¾Ð³Ð¾ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ñ.
 	integ = sq(ALPHAPI) * svertka_reg(freg2x,sigm,ex,log(4*ME/sqrt(s)),log(xmax),prec*100);
 	I+=integ;
 
 	return I;
 }
 */
-// ÷ÙÞÉÓÌÅÎÉÅ ÓÅÞÅÎÉÑ Ó ÕÞÅÔÏÍ ÒÁÚÂÒÏÓÁ ÜÎÅÒÇÉÉ × ÐÕÞËÅ.
+// Ð’Ñ‹Ñ‡Ð¸ÑÐ»ÐµÐ½Ð¸Ðµ ÑÐµÑ‡ÐµÐ½Ð¸Ñ Ñ ÑƒÑ‡ÐµÑ‚Ð¾Ð¼ Ñ€Ð°Ð·Ð±Ñ€Ð¾ÑÐ° ÑÐ½ÐµÑ€Ð³Ð¸Ð¸ Ð² Ð¿ÑƒÑ‡ÐºÐµ.
 
 static double INTEGRAL_PRECISION;
 class Spread
@@ -532,12 +532,12 @@ inline  double sigma_total2(double W, double delta, double mt, double prec)
 
 
 
-// óÅÞÅÎÉÅ Ó ×ÙÞÉÓÌÅÎÉÅÍ Ä×ÏÊÎÏÇÏ ÉÎÔÅÇÒÁÌÁ 
-// íÎÅÍÏÎÉËÁ:
-// GFS --- Gauss , F (ÆÁÄÉÎÓËÉÅ ÐÏÐÒÁ×ËÉ) , Sigma
-// reg --- ÞÁÓÔØ ÆÕÎËÃÉÉ ÂÅÚ ÏÓÏÂÅÎÎÏÓÔÅÊ
-// xb  --- ÏÓÏÂÅÎÎÏÓÔØ x^{\betta -1}
-// ln  --- ÌÏÇÁÒÉÆÍÉÞÅÓËÁÑ ÏÓÏÂÅÎÎÏÓÔØ
+// Ð¡ÐµÑ‡ÐµÐ½Ð¸Ðµ Ñ Ð²Ñ‹Ñ‡Ð¸ÑÐ»ÐµÐ½Ð¸ÐµÐ¼ Ð´Ð²Ð¾Ð¹Ð½Ð¾Ð³Ð¾ Ð¸Ð½Ñ‚ÐµÐ³Ñ€Ð°Ð»Ð° 
+// ÐœÐ½ÐµÐ¼Ð¾Ð½Ð¸ÐºÐ°:
+// GFS --- Gauss , F (Ñ„Ð°Ð´Ð¸Ð½ÑÐºÐ¸Ðµ Ð¿Ð¾Ð¿Ñ€Ð°Ð²ÐºÐ¸) , Sigma
+// reg --- Ñ‡Ð°ÑÑ‚ÑŒ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ð¸ Ð±ÐµÐ· Ð¾ÑÐ¾Ð±ÐµÐ½Ð½Ð¾ÑÑ‚ÐµÐ¹
+// xb  --- Ð¾ÑÐ¾Ð±ÐµÐ½Ð½Ð¾ÑÑ‚ÑŒ x^{\betta -1}
+// ln  --- Ð»Ð¾Ð³Ð°Ñ€Ð¸Ñ„Ð¼Ð¸Ñ‡ÐµÑÐºÐ°Ñ Ð¾ÑÐ¾Ð±ÐµÐ½Ð½Ð¾ÑÑ‚ÑŒ
 
 
 inline double Sigma ( double s, double mt)
