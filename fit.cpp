@@ -51,13 +51,15 @@ TROOT root("Fit tau mass","Fit tau mass", initfuncs);
 
 
 unsigned DEBUG=0;
+std::string INPUT_FILE="scan.txt";
+std::string OUTPUT_FILE="fitscan.txt";
 std::string EFFCOR_FILENAME="effcor.dat";
-std::string OUTPUT_PREFIX="tau";
 double ENERGY_VARIATION=0.01;
 double EFFICIENCY_VARIATION=0.005;
 std::string RESULT_FILE="fitresult.txt";
 int SEED=0;
 
+void print_result(std::ostream & , TMinuit *, string comment="");
 double correct_energy(double dmjpsi, double dmpsi2s)
 {
   double dm1 = dmjpsi/2;
@@ -107,6 +109,40 @@ double correct_luminocity(unsigned lumopt=LUM_GG)
   }
 }
 
+double correct_luminocity2(unsigned lumopt=LUM_GG)
+{
+  double IL=0;
+  double INgg=0;
+  double INee=0;
+  double E0 = ENERGY[0];
+  for(int i=0;i<POINT_NUMBER;i++)
+  {
+    IL+=LUM[i];
+    INgg+=NGG[i]*sq(ENERGY[i]/E0);
+    INee+=NEE[i]*sq(ENERGY[i]/E0);
+  }
+  double ggS0 = INgg/IL;
+  double bbS0 = INee/IL;
+  cout << "Estimation gamma-gamma cross section: " << ggS0 << " nb" << endl;
+  cout << "Estimation Bhabha cross section: " << bbS0 << " nb" << endl;
+  //to change the luminosity
+  cout << setw(15) << "energy" << setw(15) << "old lum" << setw(15) << "change" << setw(15) << " new lum " << endl;
+  for(int i=0;i<POINT_NUMBER;i++)
+  {
+    double old_lum = LUM[i];
+    switch(lumopt)
+    {
+      case LUM_GG:
+        LUM[i] = NGG[i]*sq(ENERGY[i]/E0)/ggS0;
+        break;
+      case LUM_BB:
+        LUM[i] = NEE[i]*sq(ENERGY[i]/E0)/bbS0;
+        break;
+    }
+    cout << setw(15) << ENERGY[i] << setw(15) << old_lum << setw(15) << LUM[i] - old_lum << setw(15) << LUM[i] << endl;
+  }
+}
+
 using namespace std;
 int main(int argc, char ** argv)
 {
@@ -114,28 +150,28 @@ int main(int argc, char ** argv)
   po::options_description opt_desc("Allowed options");
   opt_desc.add_options()
     ("help,h","Print this help")
-    ("data",po::value<std::string>()->default_value("scan.txt"), "File with data")
-  //  ("spread",po::value<double>()->default_value(1.45514),"energy spread" )
-    ("spread",po::value<double>()->default_value(1.354),"energy spread" )
-    ("mjpsi",po::value<double>()->default_value(0.116), "Difference between measurement and PDG mass of the JPSI" )
-    ("mpsi2s",po::value<double>()->default_value(0.096),"Difference between measurement and PDG mass of the PSI2S" )
-    ("dmjpsi",po::value<double>()->default_value(0.072), "Difference between measurement and PDG mass of the JPSI" )
-    ("dmpsi2s",po::value<double>()->default_value(0.122),"Difference between measurement and PDG mass of the PSI2S" )
+    ("input", po::value<std::string>(&INPUT_FILE)->default_value("scan.txt"), "File with data")
+    ("output",po::value<std::string>(&OUTPUT_FILE), "Output file *.root and *.pdf")
     ("lum",po::value<string>()->default_value("gg"), "luminosity  gg - gamma-gamma, bb-Bhabha")
     ("correct-energy","Apply energy correction to CBS energies")
     ("correct-efficiency","Apply efficiency corrections from file effcor.dat")
+    ("noeffcor","Not correct efficiency")
     ("effcor",po::value<string>(&EFFCOR_FILENAME), "Efficiency correction file. Default value is effcor.dat ")
-    ("output-prefix",po::value<string>(&OUTPUT_PREFIX), "Prefix to save dat into file *.root and *.pdf")
+    ("spread",po::value<double>()->default_value(1.374),"energy spread" )
+    ("mjpsi",po::value<double>()->default_value(0.112), "Difference between measurement and PDG mass of the JPSI" )
+    ("mpsi2s",po::value<double>()->default_value(0.238),"Difference between measurement and PDG mass of the PSI2S" )
+    ("dmjpsi",po::value<double>()->default_value(0.064), "Error of the jpsi difference")
+    ("dmpsi2s",po::value<double>()->default_value(0.113),"Error of the psi2s difference")
     ("ivanos","Draw lfcn")
     ("novp", "No vacuum polarization")
     ("exit", "exit after fitting")
     ("variate-energy",po::value<double>(&ENERGY_VARIATION), "Variate point energy")
     ("variate-efficiency",po::value<double>(&EFFICIENCY_VARIATION), "Variate efficiency correction")
     ("seed",po::value<int>(&SEED), "Random seed")
-    ("fitresult",po::value<std::string>(&RESULT_FILE), "Result file")
+    ("fitresult",po::value<std::string>(&RESULT_FILE), "Result file which accumulating with result")
     ;
   po::positional_options_description pos;
-  pos.add("data",-1);
+  pos.add("input",-1);
   po::variables_map opt; //options container
   try
   {
@@ -171,7 +207,7 @@ int main(int argc, char ** argv)
     correct_energy(opt["mjpsi"].as<double>(), opt["mpsi2s"].as<double>());
   }
 
-  if(opt.count("correct-efficiency") || opt.count("effcor"))
+  if(opt.count("effcor"))
   {
     cout << "Correct efficiency from file: " << EFFCOR_FILENAME << endl;
     ifstream file(EFFCOR_FILENAME.c_str());
@@ -186,13 +222,21 @@ int main(int argc, char ** argv)
       cout <<  i << " " << EFCOR[i] << endl;
     }
   }
+  if(opt.count("noeffcor"))
+  {
+    cout << "Suppress efficency correction." << endl;
+    for(int i=0; !file.eof() && i<POINT_NUMBER; i++)
+    {
+      EFCOR[i]=1;
+    }
+  }
 
   if(opt.count("lum"))
   {
     string s = opt["lum"].as<string>();
     if(s=="gg") LUMINOCITY = LUM_GG;
     if(s=="bb"|| s=="ee") LUMINOCITY = LUM_BB;
-    correct_luminocity(LUMINOCITY);
+    correct_luminocity2(LUMINOCITY);
   }
 
   if(opt.count("variate-energy"))
@@ -261,6 +305,14 @@ int main(int argc, char ** argv)
 	minuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
 	minuit->mnprin(4,amin);
   
+  print_result(std::cout, minuit);
+
+  std::ifstream input_file(INPUT_FILE, std::ios::binary);
+  std::ofstream output_file(OUTPUT_FILE, std::ios::binary);
+  output_file << input_file.rdbuf();
+  print_result(output_file, minuit, "#");
+
+
 	double par[3],erpar[3];
 	for( int i =0 ; i < 3; i++)
   {
@@ -272,27 +324,12 @@ int main(int argc, char ** argv)
   double dEPS = erpar[1]*100; 
   double BG = abs(par[2]); //background
   double dBG = abs(erpar[2]); //background
-
-  char buf[1024];
-  sprintf(buf, "MTAU   = %8.3f +- %5.3f MeV  = %1$8.3f %+5.3f %+5.3f MeV", M , erpar[0], minuit->fErp[0],minuit->fErn[0]);
-  cout << buf << endl;
-
-  sprintf(buf, "M-MPDG = %8.3f +- %5.3f MeV", par[0], erpar[0]);
-  cout << buf << endl;
-  
-  sprintf(buf,"EPS = %3.1f %+3.1f %+3.1f pb", EPS, minuit->fErp[1]*100,minuit->fErn[1]*100);
-  cout << buf << endl;
-
-  sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", BG, minuit->fErp[2],minuit->fErn[2]);
-  cout << buf << endl;
-
-
-
   ofstream result_file(RESULT_FILE.c_str(), fstream::app);
   if(!result_file)
   {
     cerr << "Unable to open file " << RESULT_FILE << endl;
   }
+  char buf[65535];
   sprintf(buf,"%8.3f  %+5.3f  %+5.3f  %4.2f  %+4.2f  %+4.2f  %4.2f  %+4.2f  %+4.2f",
       M,       minuit->fErp[0],      minuit->fErn[0],
       EPS, minuit->fErp[1]*100,  minuit->fErn[1]*100,
@@ -340,15 +377,10 @@ int main(int argc, char ** argv)
   DMtex.Draw();
 
 
-  if(opt.count("output-prefix"))
-  {
-    char pdf_file[1024];
-    char root_file[1024];
-    sprintf(pdf_file, "%s.pdf", OUTPUT_PREFIX.c_str());
-    sprintf(root_file, "%s.root", OUTPUT_PREFIX.c_str());
-    gPad->SaveAs(pdf_file);
-    gPad->SaveAs(root_file);
-  }
+  std::string pdf_filename = OUTPUT_FILE+".pdf";
+  std::string root_filename = OUTPUT_FILE+".root";
+  gPad->SaveAs(pdf_filename.c_str());
+  gPad->SaveAs(root_filename.c_str());
 
   TGraphErrors * glum = new TGraphErrors(POINT_NUMBER);
   for(int i=0;i<POINT_NUMBER; i++)
@@ -367,3 +399,30 @@ int main(int argc, char ** argv)
 }
 
 
+void print_result(std::ostream & os, TMinuit * minuit, std::string comment)
+{
+	double par[3],erpar[3];
+	for( int i =0 ; i < 3; i++)
+  {
+		minuit->GetParameter(i,par[i], erpar[i]);
+	}
+  double M = par[0] + MTAUSHIFT;
+  double dM = erpar[0];
+  double EPS = par[1]*100; //efficiency %
+  double dEPS = erpar[1]*100; 
+  double BG = abs(par[2]); //background
+  double dBG = abs(erpar[2]); //background
+
+  char buf[1024];
+  sprintf(buf, "MTAU   = %8.3f +- %5.3f MeV  = %1$8.3f %+5.3f %+5.3f MeV", M , erpar[0], minuit->fErp[0],minuit->fErn[0]);
+  os << comment << buf << endl;
+
+  sprintf(buf, "M-MPDG = %8.3f +- %5.3f MeV", par[0], erpar[0]);
+  os << comment << buf << endl;
+  
+  sprintf(buf,"EPS = %3.1f %+3.1f %+3.1f pb", EPS, minuit->fErp[1]*100,minuit->fErn[1]*100);
+  os << comment << buf << endl;
+
+  sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", BG, minuit->fErp[2],minuit->fErn[2]);
+  os << comment << buf << endl;
+}
