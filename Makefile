@@ -9,11 +9,11 @@ draw_sigma :  draw_sigma.o libvp.a
 draw_sigma.o :  draw_sigma.cpp
 			g++ $(CXXFLAGS) -c draw_sigma.cpp -o draw_sigma.o
 
-taufit :  fit.o libvp.a
-			g++ fit.o  vp/libvp.a $(LIBS)  -o $(HOME)/work/bin/taufit
+taufit :  taufit.o libvp.a
+			g++ taufit.o  vp/libvp.a $(LIBS)  -o $(HOME)/work/bin/taufit
 
-fit.o :  fit.cpp
-			g++ $(CXXFLAGS) -c fit.cpp -o fit.o
+taufit.o :  taufit.cpp
+			g++ $(CXXFLAGS) -c taufit.cpp -o taufit.o
 
 libvp.a :
 			make -C vp
