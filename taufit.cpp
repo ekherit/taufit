@@ -23,6 +23,7 @@
 #include <algorithm>
 
 #include <boost/program_options.hpp>
+#include <boost/format.hpp>
 
 #include <TCanvas.h>
 #include <TGraph.h>
@@ -32,6 +33,8 @@
 #include <TAxis.h>
 #include <TLatex.h>
 #include <TRandom.h>
+
+#include <regex>
 
 
 #include <TROOT.h>
@@ -54,11 +57,13 @@ unsigned DEBUG=0;
 std::string INPUT_FILE="scan.txt";
 std::string OUTPUT_FILE="fitscan.txt";
 std::string EFFCOR_FILENAME="effcor.dat";
+std::string FILTER="";
 double ENERGY_VARIATION=0.01;
 double EFFICIENCY_VARIATION=0.005;
 std::string RESULT_FILE="fitresult.txt";
 int SEED=0;
 
+void read_data(string fname, double sigmaW_mtauPDG);
 void print_result(std::ostream & , TMinuit *, string comment="");
 double correct_energy(double dmjpsi, double dmpsi2s)
 {
@@ -125,7 +130,18 @@ double correct_luminocity2(unsigned lumopt=LUM_GG)
   double bbS0 = INee/IL;
   cout << "Estimation gamma-gamma cross section: " << ggS0 << " nb" << endl;
   cout << "Estimation Bhabha cross section: " << bbS0 << " nb" << endl;
-  //to change the luminosity
+  cout << "Correct luminosity using ";
+  string lumstr;
+  switch(lumopt)
+  {
+    case LUM_GG:
+      lumstr="gamma gamma envents";
+      break;
+    case LUM_BB:
+      lumstr="Bhabha envents";
+      break;
+  }
+  cout << lumstr << endl;
   cout << setw(15) << "energy" << setw(15) << "old lum" << setw(15) << "change" << setw(15) << " new lum " << endl;
   for(int i=0;i<POINT_NUMBER;i++)
   {
@@ -169,6 +185,7 @@ int main(int argc, char ** argv)
     ("variate-efficiency",po::value<double>(&EFFICIENCY_VARIATION), "Variate efficiency correction")
     ("seed",po::value<int>(&SEED), "Random seed")
     ("fitresult",po::value<std::string>(&RESULT_FILE), "Result file which accumulating with result")
+    ("filter",po::value<std::string>(&FILTER),"Regex to filter the data")
     ;
   po::positional_options_description pos;
   pos.add("input",-1);
@@ -194,14 +211,15 @@ int main(int argc, char ** argv)
 
   double Sw = opt["spread"].as<double>();
   if(opt.count("novp")) IS_VP_COR=false;
-	ifstream file(INPUT_FILE.c_str());
-	if(!file) 
-  { 
-    cerr << "cant open file " << INPUT_FILE << endl; 
-    exit(1);
-  }
-	cout << "Reading data from file " << INPUT_FILE << endl;
-	FillData2(file,Sw);
+  read_data(INPUT_FILE, Sw);
+	//ifstream file(INPUT_FILE.c_str());
+	//if(!file) 
+  //{ 
+  //  cerr << "cant open file " << INPUT_FILE << endl; 
+  //  exit(1);
+  //}
+	//cout << "Reading data from file " << INPUT_FILE << endl;
+	//FillData2(file,Sw);
   if(opt.count("correct-energy"))
   {
     cout << "Correct CBS energies: " << endl;
@@ -226,7 +244,7 @@ int main(int argc, char ** argv)
   if(opt.count("noeffcor"))
   {
     cout << "Suppress efficency correction." << endl;
-    for(int i=0; !file.eof() && i<POINT_NUMBER; i++)
+    for(int i=0; i<POINT_NUMBER; i++)
     {
       EFCOR[i]=1;
     }
@@ -426,4 +444,59 @@ void print_result(std::ostream & os, TMinuit * minuit, std::string comment)
 
   sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", BG, minuit->fErp[2],minuit->fErn[2]);
   os << comment << buf << endl;
+}
+
+
+void read_data(string fname, double sigmaW_mtauPDG) 
+{
+  ifstream file(fname);
+  if(!file) 
+  {
+    cerr << "Unable to open file : " << endl;
+    return;
+  }
+  regex filter(FILTER);
+  regex comment(" *#.*");
+  regex empty(" *");
+
+  int colw=15;
+  cout << boost::format("%6s%24s%15s%15s%15s%15s")%"POINT"%"E[MeV]"%"DELTA[MeV]"%"LUM[1/pb]"%"EVENT"%"EFCOR" << endl; 
+  int i=0;
+  typedef boost::format fmt;
+  while(!file.eof())
+  {
+    string line;
+    getline(file,line);
+    smatch match;
+    if(regex_match(line,match,filter)) continue;
+    if(regex_match(line,match,comment)) continue;
+    if(regex_match(line,match,empty)) continue;
+    istringstream is(line);
+    double tmp;
+    is >> tmp;
+    is >> LUM[i];
+    is >> ENERGY[i];
+    is >> ENERGY_ERROR[i];
+    is >> DELTA[i];
+    is >> DELTA_ERROR[i];
+    is >> EVENT[i];
+    is >> NEE[i];
+    is >> NGG[i];
+    is >> EFCOR[i];
+    ENERGY[i]/=2; //convert to beam energy
+    ENERGY_ERROR[i]/=2;
+    DELTA[i]  = sigmaW_mtauPDG*pow(ENERGY[i]/MTAU_PDG2011,2);
+		LUM[i]/=1000; //convert lum into picobarn
+    cout << boost::format("%6d%15.3f +- %5.3f%15.3f%15.3f%15d%15.4f") % (i+1) % ENERGY[i] % ENERGY_ERROR[i] %DELTA[i] % LUM[i] % EVENT[i] % EFCOR[i] << endl;
+//		cout << setw(6) << i+1 << setw(colw) << setprecision(8)  << ENERGY[i] << setw(colw)  << DELTA[i] << setw(colw) << LUM[i] << setw(colw) << EVENT[i] << setw(colw) << EFCOR[i] << endl;
+    i++;
+  }
+  POINT_NUMBER=i;
+	cout << "POINT_NUMBER=" << POINT_NUMBER << endl;
+  double lum=0;
+	for(int i = 0; i < POINT_NUMBER; i++)
+  {
+		 lum+= LUM[i];
+	}
+	cout << "TOTAL LUMINOCITY=" <<lum <<  " pb" << endl;
 }

@@ -54,6 +54,7 @@ int POINT_NUMBER;
 const int MAX_POINT_NUMBER=1024;
 
 double DELTA[MAX_POINT_NUMBER]; // Energy distribution
+double DELTA_ERROR[MAX_POINT_NUMBER]; // Energy distribution
 int    EVENT[MAX_POINT_NUMBER]; //amount of registred event
 double ENERGY[MAX_POINT_NUMBER]; //energy of beam
 double ENERGY_ERROR[MAX_POINT_NUMBER]; //energy error
@@ -290,6 +291,7 @@ void Lfcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
      else fac = logfac(EVENT[i]);
      LL+= EVENT[i] * log(mu) - mu -  fac ;
      cout.precision(6);
+     ///TESTTEST
      //cout << ENERGY[i]<<": "<<sigma<<", "<<DELTA[i] <<", pars: "<<par[0]<<", "<<par[1]<<", "<<par[2]<< ": mu="<<mu << endl;
    }
 	 f= -LL;
@@ -413,7 +415,7 @@ TGraphErrors * DataGraph(const char * title)
 		Ser[i] = sqrt(EVENT[i])/LUM[i]/EFCOR[i];
 		//S[i] = EVENT[i]/LUM[i];
 		//Ser[i] = sqrt(EVENT[i])/LUM[i];
-    cout << i << " " << ENERGY[i] << " " << LUM[i] << " " << EVENT[i] << " " << S[i] << endl;
+    //cout << i << " " << ENERGY[i] << " " << LUM[i] << " " << EVENT[i] << " " << S[i] << endl;
 	}
 	TGraphErrors * gr = new TGraphErrors(POINT_NUMBER, ENERGY,S,ENERGY_ERROR,Ser);
 	gr->SetTitle(title);
