@@ -1,9 +1,9 @@
 /*
  * =====================================================================================
  *
- *       Filename:  draw_sigma.cpp
+ *       Filename:  taufit.cpp
  *
- *    Description:  Draw tau prodaction cross section.
+ *    Description:  Tau mass fit
  *
  *        Version:  1.0
  *        Created:  12.01.2012 16:13:08
@@ -151,7 +151,7 @@ int main(int argc, char ** argv)
   opt_desc.add_options()
     ("help,h","Print this help")
     ("input", po::value<std::string>(&INPUT_FILE)->default_value("scan.txt"), "File with data")
-    ("output",po::value<std::string>(&OUTPUT_FILE), "Output file *.root and *.pdf")
+    ("output",po::value<std::string>(&OUTPUT_FILE)->default_value("fitscan.txt"), "Output file *.root and *.pdf")
     ("lum",po::value<string>()->default_value("gg"), "luminosity  gg - gamma-gamma, bb-Bhabha")
     ("correct-energy","Apply energy correction to CBS energies")
     ("correct-efficiency","Apply efficiency corrections from file effcor.dat")
@@ -194,12 +194,13 @@ int main(int argc, char ** argv)
 
   double Sw = opt["spread"].as<double>();
   if(opt.count("novp")) IS_VP_COR=false;
-  string filename=opt["data"].as<string>();
-  if(argc>1) filename=argv[argc-1];
-	ifstream file(filename.c_str());
-	if(!file) { cerr << "cant open file " << filename << endl; exit(0);}
-	cout << "Reading data from file " << filename << endl;
-
+	ifstream file(INPUT_FILE.c_str());
+	if(!file) 
+  { 
+    cerr << "cant open file " << INPUT_FILE << endl; 
+    exit(1);
+  }
+	cout << "Reading data from file " << INPUT_FILE << endl;
 	FillData2(file,Sw);
   if(opt.count("correct-energy"))
   {
