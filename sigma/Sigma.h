@@ -117,7 +117,7 @@ inline double sigma_tree_fc_vpl_fsrc( double s, double mt)
 
 inline bool test_bad(double x)
 {
-	return isnan(x) || std::isinf(x);
+	return std::isnan(x) || std::isinf(x);
 };
 
 
@@ -130,18 +130,18 @@ inline double sigma_tree_fc_vp_fsrc( double s, double mt)
   double vp=1; //vacuum polarization
   double frc=1; //final state radiative corrections
   if(DEBUG==1) cout << "s="<<s <<", mt=" << mt << std::endl;
-	if(isnan(s) || std::isinf(s)) std::cout << "Bad s=" << s << std::endl;
+	if(std::isnan(s) || std::isinf(s)) std::cout << "Bad s=" << s << std::endl;
   // Рабочая функция для интегрирования. Учтены все поправки в конечном сосстоянии и поляризация вакуума.
 	if ( is_below_threshold(s,mt) ) return 0;
 	v=velocity(s,mt);
 	vfc=vFc(v);
 	if(IS_VP_COR) vp=VP(s,mt);
 	frc=fsrc(v);
-	if(isnan(v) || std::isinf(v)) std::cout << "vFc("<<v<<") = " << vfc << endl;
+	if(std::isnan(v) || std::isinf(v)) std::cout << "vFc("<<v<<") = " << vfc << endl;
 	if(test_bad(vp)) std::cout << "vp("<<sqrt(s/4) <<") = " << vp << endl;
 	if(test_bad(frc)) std::cout << "fsrc("<<v<<") = " << frc << endl;
 	sigma= SIGMA_CONST*(3.-v*v)/(2*s)*vfc*vp*frc;
-  if(isnan(sigma) || std::isinf(sigma)) sigma=0;
+  if(std::isnan(sigma) || std::isinf(sigma)) sigma=0;
   return sigma;
 }
 
@@ -543,7 +543,7 @@ inline  double sigma_total2(double W, double delta, double mt, double prec)
 inline double Sigma ( double s, double mt)
 {
   double sig = sigma_tree_fc_vp_fsrc(s,mt);
-  if ( isnan(sig) || std::isinf(sig) )
+  if ( std::isnan(sig) || std::isinf(sig) )
   {
     sig = -1;
     cout << "ERROR: sigma = nan || inf \n";
@@ -571,7 +571,7 @@ public:
 		double x = y[0]*eps;
 		double b = 2*ALPHAPI*( 2*log(y[1]/ME) - 1.);
 		double result =  eps*b*F_reg1(b,x)*Sigma(y[1]*y[1]*( 1.-x),mtau)*Gauss(W-y[1],delta);
-    if(isnan(result)|| std::isinf(result))
+    if(std::isnan(result)|| std::isinf(result))
     {
       cerr << "GFSreg: " << result << " W=" << W << " b=" << b << " x=" <<  x << " eps = " << eps << endl;
     }
@@ -594,7 +594,7 @@ public:
 		double b = 2*ALPHAPI*(L-1.);
 		double x = pow(z[0],1./b)*eps;
 	  double result  = pow(eps,b)*F_reg_x_b(b,L)*Sigma(z[1]*z[1]*( 1.-x),mtau)*Gauss(W-z[1],delta);
-    if(isnan(result)|| std::isinf(result))
+    if(std::isnan(result)|| std::isinf(result))
     {
       cerr << "GFSxb: " << result << " W=" << W << " b=" << b << " x=" <<  x << " eps = " << eps <<  " L=" << L << endl;
     }
@@ -616,7 +616,7 @@ public:
 		double b = 2*ALPHAPI*( 2*log(z[1]/ME) - 1.);
 		double x = z[0]*z[0]*eps;
 		double result= 0.75*b*b*F_reg_ln_x(x)*Sigma(z[1]*z[1]*(1.-x),mtau)*Gauss(W-z[1],delta)*sqrt(eps);
-    if(isnan(result) || std::isinf(result))
+    if(std::isnan(result) || std::isinf(result))
     {
       cerr << "GFSln: " << result << " W=" << W << " b=" << b << " x=" <<  x << " eps = " << eps << endl;
     }
