@@ -37,7 +37,8 @@ double sigma_fit (double *x, double *p)	{
 //  return eps * sigma + fabs(par[2]));
 //}
 
-double factorial(unsigned N)	{
+double factorial(unsigned N)
+{
 	if(N<=0) return 1;
 	double f=1.;
 	for(unsigned i = 1; i <=N ; i++)	f*=i;
@@ -265,37 +266,26 @@ void Lfcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
        return;
      }
      
-     //if(sigma == 0)
-     //{	
-     //  cerr.precision(12);
-     //  cerr << i << " " << ENERGY[i] <<  ", mu = " << mu ;
-     //  cerr << ", Sigma = " << sigma  << endl;
-     //  cerr << "trying to increez accuracy" << endl;
-     //  sigma = sigma_total(2*ENERGY[i], DELTA[i], par[0]+MTAUSHIFT,PRECISION/1000.);
-     //  mu = LUM[i] * ( par[1] * EFCOR[i] * sigma + par[2]);
-     //  if( sigma <= 0)
-     //  {
-     //    cerr << " Sigma is steel below zeor";
-     //  }
-     //  exit(1);
-     //}
-
      if ( EVENT[i] < 0)
      {
        cerr << "ERROR: number of event is low the zero" << endl;
        exit(1);
      }
-     //if(EVENT[i] <= 50) fac = 	log( factorial(EVENT[i]) );
-     //else fac = EVENT[i]*log(EVENT[i])-EVENT[i];
-     if(EVENT[i] <= 5) fac = 	log( factorial(EVENT[i]) );
-     else fac = logfac(EVENT[i]);
-     LL+= EVENT[i] * log(mu) - mu -  fac ;
-     cout.precision(6);
-     ///TESTTEST
-     //cout << ENERGY[i]<<": "<<sigma<<", "<<DELTA[i] <<", pars: "<<par[0]<<", "<<par[1]<<", "<<par[2]<< ": mu="<<mu << endl;
+
+     LL += mu - EVENT[i] + EVENT[i]*log(std::max(EVENT[i],1)/mu);
    }
-	 f= -LL;
+	 f= 2*LL;
 	 FCN_PREVIOS_VALUE = f;
+}
+
+double Lfcn(double * par)
+{
+  int npar;
+  int iflag;
+  double chi2;
+  double gin;
+  Lfcn(npar, &gin, chi2, par, iflag);
+  return chi2;
 }
 
 /*

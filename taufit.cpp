@@ -36,6 +36,7 @@
 
 #include <regex>
 
+//#include "fit/TauMassFitter.h"
 
 #include <TROOT.h>
 #include <TApplication.h>
@@ -304,7 +305,7 @@ int main(int argc, char ** argv)
 	Double_t arglist[10];
 	Int_t ierflg = 0;
 
- 	minuit->SetErrorDef(0.5);
+ 	//minuit->SetErrorDef(0.5);
 	minuit->mnparm( 0, "MTAU",    0,   0.5,  0, 0, ierflg);
 	minuit->mnparm( 1,  "EFF",  0.01,   0.2,   0,  1, ierflg);
 //	minuit->mnparm( 2,   "BG",    1,     0.5,   0,  100000, ierflg);
@@ -343,6 +344,8 @@ int main(int argc, char ** argv)
   double dEPS = erpar[1]*100; 
   double BG = abs(par[2]); //background
   double dBG = abs(erpar[2]); //background
+  double CHI2 = Lfcn(par);
+  int NDF = POINT_NUMBER - minuit->GetNumFreePars();
   ofstream result_file(RESULT_FILE.c_str(), fstream::app);
   if(!result_file)
   {
@@ -391,9 +394,17 @@ int main(int argc, char ** argv)
   TLatex BGtex(x,y*0.8,texbuf);
   BGtex.Draw();
 
-  sprintf(texbuf,"M_{#tau}-M_{PDG} =%5.3f #pm %4.2f MeV ",M-MTAUSHIFT , sqrt(dM*dM + DMTAU_PDG*DMTAU_PDG));
+  sprintf(texbuf,"M_{#tau}-M_{PDG} = %5.3f #pm %4.2f MeV ",M-MTAUSHIFT , sqrt(dM*dM + DMTAU_PDG*DMTAU_PDG));
   TLatex DMtex(1783,y*0.3,texbuf);
   DMtex.Draw();
+  
+  sprintf(texbuf,"#chi^{2}/ndf = %2.1f/%d", CHI2, NDF);
+  TLatex chi2tex(1783,y*0.2,texbuf);
+  chi2tex.Draw();
+
+  sprintf(texbuf,"P(#chi^{2},ndf) = %3.1f", TMath::Prob(CHI2,NDF));
+  TLatex probtex(1783,y*0.1,texbuf);
+  probtex.Draw();
 
 
   std::string pdf_filename = OUTPUT_FILE+".pdf";
@@ -432,6 +443,9 @@ void print_result(std::ostream & os, TMinuit * minuit, std::string comment)
   double BG = abs(par[2]); //background
   double dBG = abs(erpar[2]); //background
 
+  double CHI2 = Lfcn(par);
+  int NDF = POINT_NUMBER -  minuit->GetNumFreePars();
+
   char buf[1024];
   sprintf(buf, "MTAU   = %8.3f +- %5.3f MeV  = %1$8.3f %+5.3f %+5.3f MeV", M , erpar[0], minuit->fErp[0],minuit->fErn[0]);
   os << comment << buf << endl;
@@ -443,6 +457,12 @@ void print_result(std::ostream & os, TMinuit * minuit, std::string comment)
   os << comment << buf << endl;
 
   sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", BG, minuit->fErp[2],minuit->fErn[2]);
+  os << comment << buf << endl;
+
+  sprintf(buf,"chi2/ndf = %3.2f/%d", CHI2, NDF);
+  os << comment << buf << endl;
+
+  sprintf(buf,"P(chi2,ndf) = %3.1f", TMath::Prob(CHI2,NDF));
   os << comment << buf << endl;
 }
 
