@@ -258,6 +258,10 @@ int main(int argc, char ** argv)
   fitter.Fit(SPL);
   print_result(std::cout, fitter,"# ");
 	
+  std::ifstream input_file(INPUT_FILE, std::ios::binary);
+  std::ofstream output_file(OUTPUT_FILE, std::ios::binary);
+  output_file << input_file.rdbuf();
+  print_result(output_file, fitter, "#");
 
   ofstream result_file(RESULT_FILE.c_str(), fstream::app);
   if(!result_file)
