@@ -43,6 +43,7 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
     inipar.Add("M",      0, 0.5); //tau mass - M_PDG, MeV
     inipar.Add("EPS",    0.02, 0.01); //efficienc
     inipar.Add("BG",     1,   0.5); //background, pb
+    //inipar.Fix(2);
   }
 
   double operator() (const std::vector<double> & par) const
@@ -78,7 +79,7 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
     BG =ibn::valer<double>(minpar.Value(2), minpar.Error(2));
     M = DM + MTAUSHIFT;
     CHI2 = (*this)(minpar.Params());
-    NDF = SPL->size() - minpar.VariableParameters();
+    NDF = SPL->size() - migrad.VariableParameters();
     MnMinos minos(*this, minimum);
     errDM = minos(0,100000);
     errEPS = minos(1,100000);
@@ -93,7 +94,7 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
   std::pair<double,double> errEPS;
   std::pair<double,double> errBG;
   double CHI2;
-  double NDF;
+  int NDF;
 
   const list<ScanPoint_t> & GetData(void) { return *SPL; }
 };
