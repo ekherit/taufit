@@ -3,7 +3,7 @@
  *
  *       Filename:  draw.h
  *
- *    Description:  Draw functions
+ *    Description:  Draw data graph, fit function and fit result with chi square
  *
  *        Version:  1.0
  *        Created:  22.02.2013 16:27:47
