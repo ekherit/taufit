@@ -221,10 +221,14 @@ int main(int argc, char ** argv)
   if(opt.count("lum"))
   {
     string s = opt["lum"].as<string>();
+		cout << "LUMINOSITY=" << s << endl;
     if(s=="gg") LUMINOCITY = LUM_GG;
     if(s=="bb"|| s=="ee") LUMINOCITY = LUM_BB;
-    correct_luminocity2(SPL, LUMINOCITY);
+		if(LUMINOCITY == LUM_BB || LUMINOCITY == LUM_GG) correct_luminocity2(SPL, LUMINOCITY);
   }
+
+	
+	
 
   if(opt.count("variate-energy"))
   {
@@ -299,7 +303,7 @@ void print_result(std::ostream & os, TauMassFitter & fitter, std::string comment
   sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", fitter.BG.value, fitter.errBG.first, fitter.errBG.second);
   os << comment << buf << endl;
 
-  sprintf(buf,"chi2/ndf = %3.2f/%d", fitter.CHI2, fitter.NDF);
+  sprintf(buf,"chi2/ndf = %6.5f/%d", fitter.CHI2, fitter.NDF);
   os << comment << buf << endl;
 
   sprintf(buf,"P(chi2,ndf) = %3.1f", TMath::Prob(fitter.CHI2,fitter.NDF));

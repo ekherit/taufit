@@ -40,9 +40,9 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
   public:
   TauMassFitter(void)
   {
-    inipar.Add("M",      0, 0.5); //tau mass - M_PDG, MeV
-    inipar.Add("EPS",    0.02, 0.01); //efficienc
-    inipar.Add("BG",     1,   0.5); //background, pb
+    inipar.Add("M",      0.09, 0.01); //tau mass - M_PDG, MeV
+    inipar.Add("EPS",    0.06, 0.2); //efficienc
+    inipar.Add("BG",     1,   0.5,  0,  20); //background, pb
     //inipar.Fix(2);
   }
 
@@ -59,8 +59,13 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
       double nu = sp.luminosity.value * visible_cross_section; //expected number of events
       //cout << sp.energy.value << " " << sp.energy_spread.value << " " << MTAUSHIFT << " " << endl;
       chi2 += 2*(nu - sp.Ntt + sp.Ntt*log(std::max(sp.Ntt,1ul)/nu));
+			//cout << chi2 << " M=" << dM+MTAUSHIFT <<  " eps=" << eps << " bg=" << bg << " cross=" << cross_section << "  nu=" << nu << " chi2="<< chi2 << endl;
     }
-    if(std::isnan(chi2)) return 1e100;
+    if(std::isnan(chi2)) 
+		{
+			cout << "Bad chi2 " << chi2 << endl;
+			return 1e100;
+		}
     return chi2;
   } 
   double Up() const { return 1.; }
@@ -81,9 +86,9 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
     CHI2 = (*this)(minpar.Params());
     NDF = SPL->size() - migrad.VariableParameters();
     MnMinos minos(*this, minimum);
-    errDM = minos(0,100000);
-    errEPS = minos(1,100000);
-    errBG = minos(2,100000);
+    errDM = minos(0,1000000);
+    errEPS = minos(1,1000000);
+    errBG = minos(2,1000000);
   }
   ibn::valer<double> DM;
   ibn::valer<double> M;

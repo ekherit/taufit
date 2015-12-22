@@ -132,7 +132,7 @@ void draw_fitresult(TauMassFitter & fitter)
   TLatex * DMtex = new TLatex(1783,y*0.3,texbuf);
   DMtex->Draw();
   
-  sprintf(texbuf,"#chi^{2}/ndf = %2.1f/%d", fitter.CHI2, fitter.NDF);
+  sprintf(texbuf,"#chi^{2}/ndf = %1.2f/%d", fitter.CHI2, fitter.NDF);
   TLatex * chi2tex = new TLatex(1783,y*0.2,texbuf);
   chi2tex->Draw();
 

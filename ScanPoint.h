@@ -31,10 +31,11 @@
 
 enum 
 {
+	LUM_DEFAULT, 
   LUM_GG,
   LUM_BB
 };
-unsigned LUMINOCITY=LUM_GG;
+unsigned LUMINOCITY=LUM_DEFAULT;
 
 struct ScanPoint_t
 {
@@ -79,7 +80,9 @@ std::list<ScanPoint_t> read_data(std::string fname, double sigmaW_mtauPDG)
     std::istringstream is(line);
     double tmp;
     is >> tmp;
-    is >> sp.luminosity.value; sp.luminosity.error=0;
+    is >> sp.luminosity.value; 
+		sp.luminosity.error=0;
+		is >> sp.luminosity.error;
     is >> sp.energy.value;
     is >> sp.energy.error;
     is >> sp.energy_spread.value;
