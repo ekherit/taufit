@@ -1,12 +1,12 @@
 all : draw_sigma taufit
 
-CXXFLAGS=`root-config --cflags` -I./ -I$(HOME)/work/ -std=c++11
-LIBS= `root-config --libs` -lMinuit -lboost_program_options -lMinuit2
+CXXFLAGS=`root-config --cflags` -I./ -I$(HOME)/work/ -std=c++14 
+LIBS= `root-config --libs` -lMinuit -lboost_program_options -lMinuit2 -lfmt
 
 draw_sigma :  draw_sigma.o libvp.a
 			g++ draw_sigma.o vp/libvp.a $(LIBS)   -o $(HOME)/work/bin/taudraw
 
-draw_sigma.o :  draw_sigma.cpp
+draw_sigma.o :  draw_sigma.cpp interpolate.h
 			g++ $(CXXFLAGS) -c draw_sigma.cpp -o draw_sigma.o
 
 taufit :  taufit.o libvp.a

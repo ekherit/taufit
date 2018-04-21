@@ -6,6 +6,7 @@
 #include <ibn/integral.h>
 #include "VacuumPolarization.h"
 #include "FinRadCor.h"
+#include "FinRadCorInterpolation.h"
 #include "IniRadCor.h"
 
 
@@ -634,13 +635,13 @@ inline double partial_sigma(double W, double  delta,double mt,double wmin,double
 	double I=0;
 	double relerr1,relerr2,relerr3;
 	double integ=0;
-	integ= ibn::dgaus( GFSreg(W,mt,delta), a, b, 100*prec, relerr1);
+	integ= ibn::dgaus( GFSreg(W,mt,delta), 2, a, b, 100*prec, relerr1);
 	I+=integ;
 
-	integ= ibn::dgaus( GFSxb(W,mt,delta), a, b, prec, relerr2);
+	integ= ibn::dgaus( GFSxb(W,mt,delta), 2, a, b, prec, relerr2);
 	I+=integ;
 	
-	integ= ibn::dgaus( GFSln(W,mt,delta), a, b, 100*prec, relerr3);
+	integ= ibn::dgaus( GFSln(W,mt,delta), 2, a, b, 100*prec, relerr3);
 	I+=integ;
 	return I;
 }

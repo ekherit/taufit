@@ -19,12 +19,25 @@ static const double MMU_PDG = MMU_PDG2011;
 static const double MMU = MMU_PDG;
 
 //tau mass
+
+//PDG-2002
 static const double MTAU_PDG2002 = 1776.99; // mass of tau lepton PDG-2002
-static const double MTAU_PDG2011=1776.82; //error 0.16; 
-static const double DMTAU_PDG2011=0.16;
-static const double MTAU = MTAU_PDG2011; 
-static const double MTAU_PDG = MTAU_PDG2011; 
-static const double DMTAU_PDG = DMTAU_PDG2011; 
+static const double DMTAU_PDG2002 = 0.16;
+
+//PDG-2011
+static const double MTAU_PDG2011  = 1776.82; //error 0.16; 
+static const double DMTAU_PDG2011 = 0.16;
+
+//PDG-2018
+static const double MTAU_PDG2018=1776.86;
+static const double DMTAU_PDG2018=0.12;
+
+static const double MTAU_PDG = MTAU_PDG2018; 
+static const double DMTAU_PDG = DMTAU_PDG2018; 
+
+static const double MTAU = MTAU_PDG; 
+static const double DMTAU = DMTAU_PDG; 
+
 static const double MTAU2 = MTAU*MTAU; // m_\tau^2
 
 static const double ALPHA=1./137.03599976; //fine structure constant e^2/4pi
@@ -40,6 +53,19 @@ static const double LOGPI2 = log(M_PI)*0.5;
 
 static const double LAMBDAE = 3.861592642e-11;//cm
 static const double SIGMA_TOMSON = 0.665245854; //barn
+
+
+static const double MJPSI_PDG2018  = 3096.900;
+static const double DMJPSI_PDG2018 =    0.006;
+
+static const double MPSIP_PDG2018  = 3686.097;
+static const double DMPSIP_PDG2018 =    0.010;
+
+static const double MJPSI = MJPSI_PDG2018;
+static const double DMJPSI = DMJPSI_PDG2018;
+
+static const double MPSIP  = MPSIP_PDG2018;
+static const double DMPSIP = DMPSIP_PDG2018;
 
 
 //const double NBARN = sq(LAMBDAE*ME)*1e33; // ??????? 1/Mev^2 ? ?????????

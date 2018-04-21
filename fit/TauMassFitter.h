@@ -36,7 +36,7 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
   std::list<ScanPoint_t> * SPL; //list of scan points
   ROOT::Minuit2::MnUserParameters inipar; //initial values of parameters
   ROOT::Minuit2::MnUserParameters minpar; //optimal value of parameters
-  const double MTAUSHIFT = MTAU_PDG2011;
+  const double MTAUSHIFT = MTAU_PDG2018;
   public:
   TauMassFitter(void)
   {

@@ -144,7 +144,7 @@ int main(int argc, char ** argv)
     ("help,h","Print this help")
     ("input", po::value<std::string>(&INPUT_FILE)->default_value("scan.txt"), "File with data")
     ("output",po::value<std::string>(&OUTPUT_FILE)->default_value("fitscan.txt"), "Output file *.root and *.pdf")
-    ("lum",po::value<string>()->default_value("gg"), "luminosity  gg - gamma-gamma, bb-Bhabha")
+    ("lum",po::value<string>()->default_value("gg"), "luminosity  gg - gamma-gamma, bb-Bhabha, online")
     ("correct-energy","Apply energy correction to CBS energies")
     ("correct-efficiency","Apply efficiency corrections from file effcor.dat")
     ("noeffcor","Not correct efficiency")
@@ -224,6 +224,7 @@ int main(int argc, char ** argv)
 		cout << "LUMINOSITY=" << s << endl;
     if(s=="gg") LUMINOCITY = LUM_GG;
     if(s=="bb"|| s=="ee") LUMINOCITY = LUM_BB;
+    if(s=="online") LUMINOCITY = LUM_DEFAULT;
 		if(LUMINOCITY == LUM_BB || LUMINOCITY == LUM_GG) correct_luminocity2(SPL, LUMINOCITY);
   }
 

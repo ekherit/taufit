@@ -29,6 +29,7 @@
 #include <fstream>
 #include <regex>
 
+using namespace std;
 enum 
 {
 	LUM_DEFAULT, 
