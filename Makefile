@@ -1,4 +1,4 @@
-all : draw_sigma taufit
+all : draw_sigma taufit tauopt
 
 CXXFLAGS=`root-config --cflags` -I./ -I$(HOME)/work/ -std=c++14 
 LIBS= `root-config --libs` -lMinuit -lboost_program_options -lMinuit2 -lfmt
@@ -14,6 +14,12 @@ taufit :  taufit.o libvp.a
 
 taufit.o :  taufit.cpp fit/TauMassFitter.h
 			g++ $(CXXFLAGS) -c taufit.cpp -o taufit.o
+
+tauopt.o :  tauopt.cpp
+			g++ $(CXXFLAGS) -c tauopt.cpp -o tauopt.o
+
+tauopt :  tauopt.o libvp.a
+			g++ tauopt.o  vp/libvp.a $(LIBS)  -o $(HOME)/work/bin/tauopt
 
 libvp.a :
 			make -C vp
