@@ -40,13 +40,13 @@ unsigned LUMINOCITY=LUM_DEFAULT;
 
 struct ScanPoint_t
 {
-  int n;
+  int n; //point id
   ibn::valer<double> energy; //beam energy
   ibn::valer<double> energy_spread; //center of mass energy spread
   ibn::valer<double> luminosity; //luminosity
-  unsigned long Ntt; //number of selected tau pair
-  unsigned long Ngg; //number of gamma-gamma events
-  unsigned long Nee; //number of Bhabha events
+  double Ntt; //number of selected tau pair
+  double Ngg; //number of gamma-gamma events
+  double Nee; //number of Bhabha events
   double effcor; //correction to registration efficiency
 };
 

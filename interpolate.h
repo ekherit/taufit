@@ -49,7 +49,7 @@ TSpline3 * interpolate(const Function & f, double xmin, double xmax, double prec
       {
         y2[i] = it->second; //just use cache value
       }
-      cout << x2[i] << " " << y2[i] << endl;
+      //cout << x2[i] << " " << y2[i] << endl;
     }
     for(int i=0;i<N1+1;i++) 
     {

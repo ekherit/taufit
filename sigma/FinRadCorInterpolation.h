@@ -101,68 +101,6 @@ class FSRC //with linear correction in the table
   }
 };
 
-class FinRadCor
-{
-  double precision;
-  /* 
-   * 	maximum and minimal meaning of tau velocity
-   * 	belong this value direct radiation corrections will be performed
-   */
-  double vmax, vmin; 
-  double dv; //elementary step in velocity (it depends on precision )
-  vector <double> rad_cor_array;
-  double vel(unsigned i )	{	return (vmin  + i*dv); }
-  public:
-  FinRadCor(void){};
-  FinRadCor( double p ,double  mx = 0.4, double mn = 0 )
-  {
-    Init(p,mx,mn);		
-  }	
-  void Init( double p,double  mx = 0.3,double  mn = 0)
-  {
-    vmin = mn;
-    vmax = mx;
-    if(vmin <  0 )
-    { 
-      cerr << "error: FinRadCor class: vmin below zero." << endl;
-      exit(1);
-    }
-    if(vmax <= vmin)
-    {
-      cerr << "error: FinRadCor class: vmax <= vmin in Fin." << endl;
-      exit(1);
-    }
-    if(p==0)
-    {
-      cerr << "error: FinRadCor class: precision equal zero." << endl;
-      exit(1);
-    }
-    precision = p;
-    unsigned N = unsigned (1./precision);
-    double v;
-    dv = (vmax-vmin)/N;
-    rad_cor_array.resize(N+1);
-    for ( unsigned i = 0 ; i< rad_cor_array.size() ; i++)
-    {
-      v= vel(i);
-      rad_cor_array[i] = vFc(v)*Fr(v);
-      //cout << i << ": " << v << ": " << rad_cor_array[i] << endl;
-
-    }
-  }
-  double operator()(double v)
-  {
-    if(v >= vmin && v <=vmax)
-    {
-      return  rad_cor_array[  unsigned ( (v - vmin)/dv ) ];
-    } 
-    else
-    {
-      return Fr(v);
-    }
-  }
-};
-
 
 class FsrcSpline3
 {
@@ -181,8 +119,3 @@ class FsrcSpline3
 };
 
 static FsrcSpline3 fsrc;
-//static FSRC fsrc(1e-6,0.4,0.0);
-// 0.4 --- до 1940 Mev
-// 0.3 - 1862
-// 0.2   1813
-// 0.1   1785

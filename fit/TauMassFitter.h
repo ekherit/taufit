@@ -30,6 +30,7 @@
 #include "../ScanPoint.h"
 
 #include <sigma/Sigma.h>
+#include <sigma/SigmaInterpolation.h>
 
 class TauMassFitter :  public  ROOT::Minuit2::FCNBase 
 {
@@ -46,6 +47,14 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
     //inipar.Fix(2);
   }
 
+  mutable SigmaInterpolated fSigmaInterpolated;
+
+  //double sigma_total(double W, double spread, double M, double prec) const
+  //{
+  //  return fSigmaInterpolated(W,spread,M,prec);
+  //}
+
+
   double operator() (const std::vector<double> & par) const
   {
     double  dM = par[0]; //mass shift respect to PDG value
@@ -58,7 +67,7 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
       double visible_cross_section = eps*sp.effcor*cross_section + bg;
       double nu = sp.luminosity.value * visible_cross_section; //expected number of events
       //cout << sp.energy.value << " " << sp.energy_spread.value << " " << MTAUSHIFT << " " << endl;
-      chi2 += 2*(nu - sp.Ntt + sp.Ntt*log(std::max(sp.Ntt,1ul)/nu));
+      chi2 += 2*(nu - sp.Ntt + sp.Ntt*log(std::max(sp.Ntt,1.0)/nu));
 			//cout << chi2 << " M=" << dM+MTAUSHIFT <<  " eps=" << eps << " bg=" << bg << " cross=" << cross_section << "  nu=" << nu << " chi2="<< chi2 << endl;
     }
     if(std::isnan(chi2)) 
