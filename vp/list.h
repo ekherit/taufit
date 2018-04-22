@@ -17,6 +17,7 @@ extern void LinkPoint(Point v,Point p);
 extern void AddPoint(Point v,double x,double y,double ey);
 extern void PrintChain(Point v);
 extern void ClearCoef(Point v);
+extern void ClearCoef_Chain(Point v);
 extern void ClearMark_Chain(Point v);
 extern void NegCoef_Chain(Point v);
 extern void MulCoef_Chain(Point v,double k);
