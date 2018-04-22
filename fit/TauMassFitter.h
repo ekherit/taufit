@@ -32,6 +32,8 @@
 #include <sigma/Sigma.h>
 #include <sigma/SigmaInterpolation.h>
 
+#include <TMinuit.h>
+
 class TauMassFitter :  public  ROOT::Minuit2::FCNBase 
 {
   std::list<ScanPoint_t> * SPL; //list of scan points
@@ -111,5 +113,80 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
   int NDF;
 
   const list<ScanPoint_t> & GetData(void) { return *SPL; }
+};
+
+class TauMassFitter2;
+
+TauMassFitter2 * TAUMASSFITTER;
+
+class TauMassFitter2
+{
+  std::vector<ScanPoint_t> SP;
+  struct parinfo_t
+  {
+    std::string name;
+    double value; //initial value
+    double error; //error or first step;
+    double min;
+    double max;
+    bool fixed;
+    bool limited;
+  };
+
+  std::vector<parinfo_t> inipar; //initial parameter value
+  std::vector<parinfo_t> minpar; //optimal parameter value
+
+  TauMassFitter2(void)
+  {
+    inipar.push_back(  {"M", 0, 0.1, -1, +1, false, true} );
+    inipar.push_back(  {"EPS", 0.06, 0.1, 0, 1, false, true} );
+    inipar.push_back(  {"BG", 0.3, 1, 0, 100, false, true} );
+  }
+
+
+  //observed cross section
+  double sigma_obs(double E, double Sw, double m, double eps, double bg)
+  {
+    return sigma_total(2*E, Sw, m, 1e-10)*eps + bg;
+  }
+
+  double log_likelyhood(double nu, double N)
+  {
+    //nu - expected number of events from fit model
+    //N - measured number of events
+    return -(nu - N + N*log(std::max(N,1.0)/nu));
+  }
+
+  double CHI2(double m, double eps, double bg)
+  {
+    double chi2 = 0;
+    //int i = 0;
+    for(auto & p: SP)
+    {
+      //expected number of events for estimated parameters
+      double E = p.energy.value;
+      double S = p.energy_spread.value;
+      double L = p.luminosity.value;
+      double nu = sigma_obs(E, S,  MTAU+m, eps, bg);
+      chi2 += -2*log_likelyhood(nu, p.Ntt);
+     // i++;
+    }
+    if(!std::isnormal(chi2)) chi2=1e100;
+    return chi2;
+  }
+
+  static void fcn(Int_t& n, Double_t*, Double_t&f, Double_t*par, Int_t)
+  {
+    f = TAUMASSFITTER->CHI2(par[0],par[1],par[2]);
+  }
+
+  void Fit(const std::vector<ScanPoint_t> & sp)
+  {
+    SP = sp;
+    TMinuit minuit(3);
+    TAUMASSFITTER = this;
+    minuit.SetFCN(TauMassFitter2::fcn);
+  }
+  
 };
 #endif //TAUMASS_FITTER
