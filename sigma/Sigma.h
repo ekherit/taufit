@@ -213,28 +213,6 @@ inline double sigma_final_vp_radcor ( double s, double mt )
 	return sig;
 }
 
-
-/*
-
-class SigmaFinVP 	{
-	const double mtau;
-	public:
-		SigmaFinVP(double mt) : mtau(mt) {};
-		double operator()(double s)	{ return sigma_final_vp_radcor(s, mtau); }
-};
-*/
-/*
-double sigma0(double *x, double *p)	{
-	if(is_below_threshold(sq(*x),p[0])) return 0;
-	return sigma_tree(sq(*x),p[0]);
-}
-
-double sigma1(double *x, double *p)	{
-	double mt = p[0];
-	double s = *x;
-	return sigma_final_radcor(s, mt);
-}
-*/
 /*Подинтегральное выражение для использования в алгоритме интегрирования */
 
 
@@ -337,22 +315,6 @@ public:
 		return F2_reg_x(x,s,b,L)*sigma_final_vp_radcor(s*(1.-x), mt);
 	}
 };
-/*
-class GFSreg2	{
-	const double W;
-	const double mtau;
-	const double delta;
-public:
-	GFSreg2(double w, double mt, double dt)	: W(w), mtau(mt), delta(dt) {}
-	double operator()(double *z)	{
-		double eps = (1. - 4.* sq(mtau / z[1]));
-//	double L = 2*log(z[1]/mtau);
-		double b = 2*ALPHAPI*( 2*log(z[1]/mtau) - 1.);
-		double x = z[0]*z[0]*eps;
-		return F_reg_ln_x(x)*sigma_final_vp_radcor(z[1]*z[1]*(1.-x),mtau)*Gauss(W-z[1],delta)*sqrt(eps);
-	}
-};
-*/
 // Сечение с учетом всех радпоправок.
 inline double sigma_all_radcor(double s, double mt, double prec)
 {
@@ -419,38 +381,7 @@ class EXP
 		EXP(void) {};
 		double operator() (double y)	{ return exp(y); }
 };
-/*
-inline double sigma_all_radcor2(double s, double mt, double prec)	{
-	double eps = 1. - sq(2*mt)/s;	
-	if (eps <= 0) return 0;
-	double xmax = eps;
-	double ymax;
-	double ymin;
-	double integ=0, I = 0;
-	double L = log(s/ME/ME);
-	double b = 2*ALPHAPI*(L-1.);
-	SigmaFinVP sigm(mt);	
-	FReg1 freg1(b);
-	FRegxb fregxb(b,L);   XB xb(b);
-	FRegLn fregln; 			  Y2 y2;
-	FReg2x freg2x(s,b,L); EXP ex;
-	
-	integ=b*svertka(freg1,sigm,0,xmax,prec*10);
-	I+=integ;
 
-	integ = svertka_reg(fregxb,sigm,xb,0,pow(xmax,b),prec);
-	I+=integ;
-
-	integ = b*b/4. * svertka_reg(fregln,sigm,y2,0,sqrt(xmax),prec) ;
-	I+=integ;
-
-	//Излучение электрон-позитронных пар с начального состояния.
-	integ = sq(ALPHAPI) * svertka_reg(freg2x,sigm,ex,log(4*ME/sqrt(s)),log(xmax),prec*100);
-	I+=integ;
-
-	return I;
-}
-*/
 // Вычисление сечения с учетом разброса энергии в пучке.
 
 static double INTEGRAL_PRECISION;
@@ -646,7 +577,8 @@ inline double partial_sigma(double W, double  delta,double mt,double wmin,double
 	return I;
 }
 
-inline double sigma_total(double W, double delta, double mt, double prec)	{
+inline double sigma_total(double W, double delta, double mt, double prec)
+{
 	double I=0;//,integ=0;
 //	int nd=5;
 	double range = 10*delta;

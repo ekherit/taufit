@@ -12,7 +12,7 @@
 #include"hadron.h"
 #include"const.h"
 
-#define nr 8        // -- Число учтенных узких резонансов
+#define nr 8        // -- п╖п╦я│п╩п╬ я┐я┤я┌п╣п╫п╫я▀я┘ я┐п╥п╨п╦я┘ я─п╣п╥п╬п╫п╟п╫я│п╬п╡
 
 double Mr[nr+1],Gr[nr+1],Beer[nr+1];
 

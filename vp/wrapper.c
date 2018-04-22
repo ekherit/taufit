@@ -28,7 +28,7 @@ void vp_hadron_err(double *s, double *dre, double *dim, double *dreim)
  }
 
 
-//------------------------------------- ‰Ã— ∆œ“‘“¡Œ¡
+//------------------------------------- –î–ª—è —Ñ–æ—Ä—Ç—Ä–∞–Ω–∞
 void vp_init__()
  {
   vp_init();
