@@ -215,7 +215,7 @@ class TauMassFitter2
     minuit->mnhess();
     minuit->mnmatu(1);
     minuit->mnprin(4,0);
-    NDF = minuit->GetNumFreePars();
+    NDF = SP.size() - minuit->GetNumFreePars();
 
     minuit->GetParameter(0, DM.value,  DM.error);
     minuit->GetParameter(1, EPS.value, EPS.error);
