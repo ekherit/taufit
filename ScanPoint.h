@@ -29,6 +29,8 @@
 #include <fstream>
 #include <regex>
 #include <boost/format.hpp>
+#include <fmt/printf.h>
+#include <fmt/format.h>
 
 using namespace std;
 enum 
@@ -117,13 +119,16 @@ std::list<ScanPoint_t> read_data(std::string fname, double sigmaW_mtauPDG)
   return SPL;
 }
 
-void print(const std::list<ScanPoint_t> & SPL) 
+void print(const std::list<ScanPoint_t> & SPL, std::ostream & os=std::cout) 
 {
-  std::cout << boost::format("%6s%24s%15s%15s%15s%15s")%"POINT"%"E[MeV]"%"DELTA[MeV]"%"LUM[1/pb]"%"EVENT"%"EFCOR" << std::endl; 
+  //os << boost::format("%6s%24s%15s%15s%15s%15s")%"point"%"e[mev]"%"delta[mev]"%"lum[1/pb]"%"event"%"efcor" << std::endl; 
+  os << fmt::format("{:5}{:>24}{:>15}{:>15}{:>15}{:>15}", 
+      "#PNT", "E[MeV]", "DELTA[MeV]", "∫L[1/pb]", "EVENT", "EFFCOR") << std::endl; 
+//σw
   int i = 0;
   for (auto &sp : SPL)
   {
-    std::cout << boost::format("%6d%15.3f +- %5.3f%15.3f%15.3f%15d%15.4f") 
+    os << boost::format("%5d%15.3f +- %5.3f%15.3f%15.3f%15d%15.4f") 
       % (i+1) 
       % sp.energy.value % sp.energy.error 
       % sp.energy_spread.value 

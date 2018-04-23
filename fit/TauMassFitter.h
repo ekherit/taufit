@@ -147,14 +147,15 @@ class TauMassFitter2
   public:
 
   bool isminos=false;
+  bool is_free_energy=true;
   double CHI2;
   int NDF;
 
   TauMassFitter2(void)
   {
     inipar.push_back(  {"M"   , 0    , 0.1 , -1 , +1  , false , true} );
-    inipar.push_back(  {"EPS" , 0.06 , 0.1 , 0  , 1   , false , true} );
-    inipar.push_back(  {"BG"  , 0  , 0.1  , 0  , 5 , false , true} );
+    inipar.push_back(  {"EPS" , 0.06 , 0.02 , 0  , 1   , false , true} );
+    inipar.push_back(  {"BG"  , 0.1  , 0.05  , 0  , 5 , false , true} );
   }
 
 
@@ -191,16 +192,32 @@ class TauMassFitter2
   static void fcn(Int_t& n, Double_t*, Double_t&f, Double_t*par, Int_t)
   {
     f = TAUMASSFITTER->GetChi2(par[0],par[1],par[2]);
+    if(TAUMASSFITTER->is_free_energy)
+    {
+      for(int i=0;i<TAUMASSFITTER->SP.size();++i)
+      {
+        f+=pow( (TAUMASSFITTER->SP[i].energy.value - par[3+i])/TAUMASSFITTER->SP[i].energy.error, 2.0);
+      }
+    }
   }
 
   void Fit(void)
   {
-    minuit.reset(new TMinuit(inipar.size()));
+    if(is_free_energy) minuit.reset(new TMinuit(inipar.size()+SP.size()));
+    else minuit.reset(new TMinuit(inipar.size()));
     int i=0;
     for( auto & p : inipar)
     {
       minuit->DefineParameter(i, p.name.c_str(), p.value,  p.error, p.min , p.max);
       i++;
+    }
+    if(is_free_energy)
+    {
+      for(i=inipar.size();i<inipar.size()+SP.size();i++)
+      {
+        int point = i-inipar.size();
+        minuit->DefineParameter(i, ("DE"+std::to_string(point+1)).c_str(), 0, SP[point].energy.error, -5 , 5);
+      }
     }
     TAUMASSFITTER = this;
     minuit->SetFCN(TauMassFitter2::fcn);
@@ -211,7 +228,7 @@ class TauMassFitter2
     minuit->mnprin(4,0);
     NDF = SP.size() - minuit->GetNumFreePars();
 
-    minpar = inipar;
+    minpar.resize(minuit->GetNumPars());
     for(int i=0;i<minpar.size();i++) 
     {
       minuit->GetParameter(i, minpar[i].value, minpar[i].error);

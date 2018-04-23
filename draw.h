@@ -163,17 +163,38 @@ void draw_fitresult(TauMassFitter2 & fitter, double MSHIFT=0)
   TMultiGraph * mg = new TMultiGraph;
 	TGraph * fit_gr = SigmaGraph(fitter.GetData(), MTAU+fitter("M").value, fitter("EPS").value, fitter("BG").value,200);
   TGraph * data_gr = DataGraph(fitter.GetData(),"tit");
+  TGraphErrors * diff_graph = new TGraphErrors;
+  for(int i=0;i<data_gr->GetN();i++)
+  {
+    double E = data_gr->GetX()[i];
+    double dE = data_gr->GetErrorX(i);
+    double sigma_data = data_gr->GetY()[i];
+    double sigma_fit = fit_gr->Eval(E);
+    double diff = sigma_fit-sigma_data;
+    diff_graph->SetPoint(i, E, diff);
+    diff_graph->SetPointError(i,dE, data_gr->GetErrorY(i));
+  }
   for(int i=0;i<fit_gr->GetN();i++) fit_gr->GetX()[i]-=MSHIFT;
   for(int i=0;i<data_gr->GetN();i++) data_gr->GetX()[i]-=MSHIFT;
+  for(int i=0;i<diff_graph->GetN();i++) diff_graph->GetX()[i]-=MSHIFT;
   fit_gr->SetLineWidth(2);
   fit_gr->SetLineColor(kRed);
   mg->Add(fit_gr,"c");
   mg->Add(data_gr,"p");
   mg->Draw("a");
-  if(MSHIFT == 0) mg->GetXaxis()->SetTitle("E, MeV");
-  else if( MSHIFT = MTAU_PDG ) mg->GetXaxis()->SetTitle("E-M_{#tau}^{PDG}, MeV");
-  else mg->GetXaxis()->SetTitle(fmt::format("E-{}, MeV", MSHIFT).c_str());
+
+  auto smart_xasis_title = [&](TAxis * axis)
+  {
+    if(MSHIFT == 0) axis->SetTitle("E, MeV");
+    else if( MSHIFT = MTAU_PDG ) axis->SetTitle("E-M_{#tau}^{PDG}, MeV");
+    else axis->SetTitle(fmt::format("E-{}, MeV", MSHIFT).c_str());
+  };
   mg->GetYaxis()->SetTitle("#sigma_{obs}, pb");
+  smart_xasis_title(mg->GetXaxis());
+
+  //if(MSHIFT == 0) mg->GetXaxis()->SetTitle("E, MeV");
+  //else if( MSHIFT = MTAU_PDG ) mg->GetXaxis()->SetTitle("E-M_{#tau}^{PDG}, MeV");
+  //else mg->GetXaxis()->SetTitle(fmt::format("E-{}, MeV", MSHIFT).c_str());
 
   double x,y;
   x=fitter("M").value-5+MTAU-MSHIFT;
@@ -214,5 +235,10 @@ void draw_fitresult(TauMassFitter2 & fitter, double MSHIFT=0)
   gPad->SaveAs(root_filename.c_str());
 
   draw_lum(fitter.GetData());
+  auto diff_canvas = new TCanvas("diff_canavs", "Fit and data difference");
+  diff_graph->SetMarkerStyle(21);
+  diff_graph->Draw("ap");
+  smart_xasis_title(diff_graph->GetXaxis());
+  diff_graph->GetYaxis()->SetTitle("#sigma_{fit}  - #sigma_{data}, pb");
 }
 #endif
