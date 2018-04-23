@@ -144,6 +144,10 @@ int main(int argc, char ** argv)
   double ESHIFT=0;
   double bg,eps;
   double cbs_energy_error=0.1;
+  double jpsi_spread;
+  double tau_spread;
+  double psip_spread;
+  double energy_spread=0;
   opt_desc.add_options()
     ("help,h","Print this help")
     ("input", po::value<std::string>(&INPUT_FILE)->default_value("scan.txt"), "File with data")
@@ -172,6 +176,9 @@ int main(int argc, char ** argv)
     ("bg", po::value<double>(&bg)->default_value(0.3), "Background, pb")
     ("eps", po::value<double>(&eps)->default_value(0.06), "Registration efficiency")
     ("cbs-energy-error",po::value<double>(&cbs_energy_error), "Energy measurement error")
+    ("jpsi-spread", po::value<double>(&jpsi_spread), "Energy spread on J/psi, MeV")
+    ("tau-spread", po::value<double>(&tau_spread), "Energy spread on tau threshold, MeV")
+    ("psip-spread", po::value<double>(&psip_spread), "Energy spread on psi(2S), MeV")
     ;
   po::positional_options_description pos;
   pos.add("input",-1);
@@ -204,12 +211,35 @@ int main(int argc, char ** argv)
     if(!scenario_file) { cerr << "Unable to open scenario file: " << INPUT_FILE << endl; return -1;}
     ScanPoint_t sp;
     TRandom R;
+    if(opt.count("jpsi-spread"))
+    {
+      cout << "Using jpsi-spread " << jpsi_spread << " MeV" << endl;
+      energy_spread = jpsi_spread*pow(2*MTAU/MJPSI, 2.0);
+    }
+    else if (opt.count("psip-spread"))
+    {
+      cout << "Using psi(2S) energy spread " << psip_spread << " MeV" << endl;
+      energy_spread = psip_spread*pow(2*MTAU/MPSIP, 2.0);
+    }
+    else if (opt.count("tau-spread"))
+    {
+      cout << "Using tau energy spread " << tau_spread << " MeV" << endl;
+      energy_spread = tau_spread;
+    }
+    std::cout << "Energy spread on tau threshold " <<  energy_spread << " MeV" << endl;
+    std::cout << "Background cross section " << bg << " pb" << endl;
+    std::cout << "Registration efficiency " << eps << endl;
     while(scenario_file >> sp.n >>  sp.energy.value >> sp.energy_spread.value >>  sp.luminosity.value >> sp.Ntt)
     {
       sp.energy.value += MTAU;
       sp.energy.error = cbs_energy_error;
+      if(energy_spread !=0 )
+      {
+        sp.energy_spread.value = energy_spread*pow(sp.energy.value/MTAU,2.0);
+      }
       double sigma = sigma_total(2*sp.energy.value, sp.energy_spread.value,  MTAU, 1e-10)*eps + bg;
       sp.energy.value = R.Gaus(sp.energy.value, cbs_energy_error*0.5);
+      sp.energy_spread.value = Sw*pow(sp.energy.value/MTAU,2.0);
       double mu = sigma*sp.luminosity.value;
       sp.Ntt = R.Poisson(mu);
       //std::cout << "E = " << sp.energy.value << " L = " << sp.luminosity.value <<  "  sigma_obs " << sigma << "  Ntt = " << sp.Ntt << endl;

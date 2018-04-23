@@ -96,7 +96,7 @@ void draw_lum(const std::list<ScanPoint_t> & SPL)
     glum->SetPointError(i, sp.energy.error, dr);
     i++;
   }
-  TCanvas * clum = new TCanvas;
+  TCanvas * clum = new TCanvas("luminosity","luminosity");
   glum->SetMarkerStyle(21);
   glum->Draw("ap");
 }
