@@ -66,7 +66,7 @@ double EFFICIENCY_VARIATION=0.005;
 std::string RESULT_FILE="fitresult.txt";
 int SEED=0;
 
-void print_result(std::ostream & , TauMassFitter & , string comment="");
+void print_result(std::ostream & , TauMassFitter2 & , string comment="");
 
 double correct_energy(std::list<ScanPoint_t> & SPL, double dmjpsi, double dmpsi2s)
 {
@@ -266,12 +266,12 @@ int main(int argc, char ** argv)
   TauMassFitter2 fitter;
   fitter.Fit(SPL);
   if(opt.count("minos")) fitter.Minos();
-  //print_result(std::cout, fitter,"# ");
+  print_result(std::cout, fitter,"# ");
 	
   std::ifstream input_file(INPUT_FILE, std::ios::binary);
   std::ofstream output_file(OUTPUT_FILE, std::ios::binary);
   output_file << input_file.rdbuf();
-  //print_result(output_file, fitter, "#");
+  print_result(output_file, fitter, "#");
 
   ofstream result_file(RESULT_FILE.c_str(), fstream::app);
   if(!result_file)
@@ -280,9 +280,9 @@ int main(int argc, char ** argv)
   }
   char buf[65535];
   sprintf(buf,"%8.3f  %+5.3f  %+5.3f  %4.2f  %+4.2f  %+4.2f  %4.2f  %+4.2f  %+4.2f",
-      fitter.M.value,       fitter.errDM.first,      fitter.errDM.second,     
-      fitter.EPS.value,     fitter.errEPS.first*100, fitter.errEPS.second*100,
-      fitter.BG.value,      fitter.errBG.first,      fitter.errBG.second     
+      fitter("M").value,         fitter("M").min,       fitter("M").max,     
+      fitter("EPS").value,     fitter("EPS").min*100, fitter("EPS").max*100,
+      fitter("BG").value,       fitter("BG").min,      fitter("BG").max   
       );
   result_file << buf << endl;
   result_file.close();
@@ -299,19 +299,19 @@ int main(int argc, char ** argv)
   return 0;
 }
 
-void print_result(std::ostream & os, TauMassFitter & fitter, std::string comment)
+void print_result(std::ostream & os, TauMassFitter2 & fitter, std::string comment)
 {
   char buf[1024];
-  sprintf(buf, "MTAU   = %8.3f +- %5.3f MeV  = %1$8.3f %+5.3f %+5.3f MeV", fitter.M.value , fitter.M.error, fitter.errDM.first,fitter.errDM.second);
+  sprintf(buf, "MTAU   = %8.3f +- %5.3f MeV  = %8.3f %+5.3f %+5.3f MeV", fitter("M").value+MTAU , fitter("M").error, fitter("M").value+MTAU, fitter("M").min,fitter("M").max);
   os << comment << buf << endl;
 
-  sprintf(buf, "M-MPDG = %8.3f +- %5.3f MeV", fitter.DM.value, fitter.DM.error);
+  sprintf(buf, "M-MPDG = %8.3f +- %5.3f MeV", fitter("M").value, fitter("M").error);
   os << comment << buf << endl;
   
-  sprintf(buf,"EPS = %3.1f %+3.1f %+3.1f %%", fitter.EPS.value*100, fitter.errEPS.first*100,fitter.errEPS.second*100);
+  sprintf(buf,"EPS = %3.1f %+3.1f %+3.1f %%", fitter("EPS").value*100, fitter("EPS").min*100,fitter("EPS").max*100);
   os << comment << buf << endl;
 
-  sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", fitter.BG.value, fitter.errBG.first, fitter.errBG.second);
+  sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", fitter("BG").value, fitter("BG").min, fitter("BG").max);
   os << comment << buf << endl;
 
   sprintf(buf,"chi2/ndf = %6.5f/%d", fitter.CHI2, fitter.NDF);

@@ -151,12 +151,13 @@ void draw_fitresult(TauMassFitter & fitter)
 
   draw_lum(fitter.GetData());
 }
+
 void draw_fitresult(TauMassFitter2 & fitter, double MSHIFT=0)
 {
 	TCanvas * sigma_c = new TCanvas("sigma", "sigma", 1.2*640,1.2*480); 
 	sigma_c->SetGrid();
   TMultiGraph * mg = new TMultiGraph;
-	TGraph * fit_gr = SigmaGraph(fitter.GetData(), fitter.M.value,fitter.EPS.value,fitter.BG.value,200);
+	TGraph * fit_gr = SigmaGraph(fitter.GetData(), MTAU+fitter("M").value, fitter("EPS").value, fitter("BG").value,200);
   TGraph * data_gr = DataGraph(fitter.GetData(),"tit");
   for(int i=0;i<fit_gr->GetN();i++) fit_gr->GetX()[i]-=MSHIFT;
   for(int i=0;i<data_gr->GetN();i++) data_gr->GetX()[i]-=MSHIFT;
@@ -171,25 +172,26 @@ void draw_fitresult(TauMassFitter2 & fitter, double MSHIFT=0)
   mg->GetYaxis()->SetTitle("#sigma_{obs}, pb");
 
   double x,y;
-  x=fitter.M.value-5-MSHIFT;
+  x=fitter("M").value-5+MTAU-MSHIFT;
   y=15;
   std::vector <double> v(&data_gr->GetY()[0], &data_gr->GetY()[data_gr->GetN()]);
   std::sort(v.begin(),v.end());
   y=v.back();
 
   char texbuf[1024];
-  if(fitter.isminos) sprintf(texbuf,"M_{#tau} = %8.3f_{ %+4.2f}^{%+4.2f} MeV", fitter.M.value, fitter.errDM.first,fitter.errDM.second);
-  else sprintf(texbuf,"M_{#tau} = %8.3f #pm %4.2f MeV", fitter.M.value, fitter.M.error);
+  if(fitter.isminos) sprintf(texbuf,"M_{#tau} = %8.3f_{ %+4.2f}^{%+4.2f} MeV", fitter("M").value+MTAU, fitter("M").min,fitter("M").max);
+  else sprintf(texbuf,"M_{#tau} = %8.3f #pm %4.2f MeV", fitter("M").value+MTAU, fitter("M").error);
   TLatex * Mtex = new TLatex(x,y,texbuf);
+  //TLatex * Mtex = new TLatex(x,y,fmt::format("M_{#tau} = %8.3f_{ %+4.2f}^{%+4.2f} MeV", fitter.M.value, fitter.errDM.first,fitter.errDM.second).c_str());
   Mtex->Draw();
-  sprintf(texbuf,"#varepsilon = %3.1f #pm %3.1f %%", fitter.EPS.value*100, fitter.EPS.error*100);
+  sprintf(texbuf,"#varepsilon = %3.1f #pm %3.1f %%", fitter("EPS").value*100, fitter("EPS").error*100);
   TLatex * EPStex = new TLatex(x,y*0.9,texbuf);
   EPStex->Draw();
-  sprintf(texbuf,"#sigma_{BG} = %3.1f_{%+4.2f}^{%+4.2f} pb", fitter.BG.value, 0 ,fitter.BG.error);
+  sprintf(texbuf,"#sigma_{BG} = %3.1f_{%+4.2f}^{%+4.2f} pb", fitter("BG").value, 0.0 ,fitter("BG").error);
   TLatex *BGtex = new TLatex(x,y*0.8,texbuf);
   BGtex->Draw();
 
-  sprintf(texbuf,"M_{#tau}-M_{PDG} = %5.3f #pm %4.2f MeV ",fitter.DM.value , sqrt(fitter.DM.error*fitter.DM.error + DMTAU_PDG*DMTAU_PDG));
+  sprintf(texbuf,"M_{#tau}-M_{PDG} = %5.3f #pm %4.2f MeV ",fitter("M").value , sqrt(pow(fitter("M").error,2.0) + DMTAU_PDG*DMTAU_PDG));
   TLatex * DMtex = new TLatex(1783-MSHIFT,y*0.3,texbuf);
   DMtex->Draw();
   
@@ -197,7 +199,7 @@ void draw_fitresult(TauMassFitter2 & fitter, double MSHIFT=0)
   TLatex * chi2tex = new TLatex(1783-MSHIFT,y*0.2,texbuf);
   chi2tex->Draw();
 
-  sprintf(texbuf,"P(#chi^{2},ndf) = %3.2f", TMath::Prob(fitter.CHI2,fitter.NDF));
+  sprintf(texbuf,"prob(#chi^{2},ndf) = %3.2f", TMath::Prob(fitter.CHI2,fitter.NDF));
   TLatex * probtex = new TLatex(1783-MSHIFT,y*0.1,texbuf);
   probtex->Draw();
 

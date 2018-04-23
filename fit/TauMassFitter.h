@@ -20,6 +20,7 @@
 #include <vector>
 #include <list>
 #include <chrono>
+#include <algorithm>
 
 #include <Minuit2/MnUserParameters.h>
 #include <Minuit2/FCNBase.h>
@@ -135,6 +136,7 @@ class TauMassFitter2
     double max;
     bool fixed;
     bool limited;
+    bool minos=false;
   };
 
 
@@ -145,14 +147,6 @@ class TauMassFitter2
   public:
 
   bool isminos=false;
-  ibn::valer<double> DM;
-  ibn::valer<double> M;
-  ibn::valer<double> EPS;
-  ibn::valer<double> BG;
-  //negative and positive errors for parameters
-  std::pair<double,double> errDM;
-  std::pair<double,double> errEPS;
-  std::pair<double,double> errBG;
   double CHI2;
   int NDF;
 
@@ -217,13 +211,25 @@ class TauMassFitter2
     minuit->mnprin(4,0);
     NDF = SP.size() - minuit->GetNumFreePars();
 
-    minuit->GetParameter(0, DM.value,  DM.error);
-    minuit->GetParameter(1, EPS.value, EPS.error);
-    minuit->GetParameter(2, BG.value,  BG.error);
-    M.value = DM.value + MTAU;
-    M.error = DM.error;
-    CHI2 = GetChi2(DM.value, EPS.value, BG.value);
+    minpar = inipar;
+    for(int i=0;i<minpar.size();i++) 
+    {
+      minuit->GetParameter(i, minpar[i].value, minpar[i].error);
+      minpar[i].min = -minpar[i].error;
+      minpar[i].max = minpar[i].error;
+    }
+    CHI2 = GetChi2(minpar[0].value, minpar[1].value, minpar[2].value);
   }
+
+
+
+  const parinfo_t & operator()(std::string nm) 
+  {
+    auto & p =  *find_if(minpar.begin(), minpar.end(), [&nm](const parinfo_t & p) { return  p.name == nm; } );
+    return p;
+  };
+
+
 
   void Fit(const std::list<ScanPoint_t> & sp)
   {
@@ -243,18 +249,19 @@ class TauMassFitter2
     for(auto & p: SP ) spl.push_back(p);
     return spl;
   }
+
   //Calculate minos errors
-  void Minos(void) 
+  void Minos(int par=-1) 
   {
     isminos = true;
     double eparab, gcc;
     minuit->mnmnos();
-    minuit->mnerrs(0, errDM.second, errDM.first,eparab, gcc);
-    //std::cout << "M : " << errDM.first << " " << errDM.second << "  " << eparab << "  " << gcc << endl;
-    minuit->mnerrs(1, errEPS.second, errEPS.first,eparab, gcc);
-    //std::cout << "EPS : " << errEPS.first << " " << errEPS.second << "  " << eparab << "  " << gcc << endl;
-    minuit->mnerrs(2, errBG.second, errBG.first,eparab, gcc);
-    //std::cout << "BG : " << errBG.first << " " << errBG.second << "  " << eparab << "  " << gcc << endl;
+    if(par<0 || par > minpar.size()-1) for(int i=0;i<minpar.size();i++) minuit->mnerrs(i, minpar[i].max, minpar[i].min,eparab, gcc);
+    else minuit->mnerrs(par, minpar[par].max, minpar[par].min,eparab, gcc);
+  }
+
+  void Hesse(void)
+  {
   }
 };
 #endif //TAUMASS_FITTER

@@ -10,13 +10,13 @@ draw_sigma :  draw_sigma.o libvp.a
 draw_sigma.o :  draw_sigma.cpp interpolate.h
 			g++ $(CXXFLAGS) -c draw_sigma.cpp -o draw_sigma.o
 
-taufit :  taufit.o libvp.a 
+taufit :  taufit.o libvp.a  draw.h
 			g++ taufit.o  vp/libvp.a $(LIBS)  -o $(HOME)/work/bin/taufit
 
 taufit.o :  taufit.cpp fit/TauMassFitter.h
 			g++ $(CXXFLAGS) -c taufit.cpp -o taufit.o
 
-tauopt.o :  tauopt.cpp draw.h
+tauopt.o :  tauopt.cpp 
 			g++ $(CXXFLAGS) -c tauopt.cpp -o tauopt.o
 
 tauopt :  tauopt.o libvp.a
