@@ -140,6 +140,8 @@ int main(int argc, char ** argv)
 {
   namespace po=boost::program_options;
   po::options_description opt_desc("Allowed options");
+  int opt_minos;
+  double ESHIFT=0;
   opt_desc.add_options()
     ("help,h","Print this help")
     ("input", po::value<std::string>(&INPUT_FILE)->default_value("scan.txt"), "File with data")
@@ -162,6 +164,8 @@ int main(int argc, char ** argv)
     ("seed",po::value<int>(&SEED), "Random seed")
     ("fitresult",po::value<std::string>(&RESULT_FILE), "Result file which accumulating with result")
     ("filter",po::value<std::string>(&FILTER),"Regex to filter the data")
+    ("minos", "Calculate minos errors" )
+    ("pdgshift", "Shift energy drawing on PDG mass value")
     ;
   po::positional_options_description pos;
   pos.add("input",-1);
@@ -259,14 +263,15 @@ int main(int argc, char ** argv)
     }
   }
 
-  TauMassFitter fitter;
+  TauMassFitter2 fitter;
   fitter.Fit(SPL);
-  print_result(std::cout, fitter,"# ");
+  if(opt.count("minos")) fitter.Minos();
+  //print_result(std::cout, fitter,"# ");
 	
   std::ifstream input_file(INPUT_FILE, std::ios::binary);
   std::ofstream output_file(OUTPUT_FILE, std::ios::binary);
   output_file << input_file.rdbuf();
-  print_result(output_file, fitter, "#");
+  //print_result(output_file, fitter, "#");
 
   ofstream result_file(RESULT_FILE.c_str(), fstream::app);
   if(!result_file)
@@ -283,7 +288,12 @@ int main(int argc, char ** argv)
   result_file.close();
 
 	TApplication theApp("tau", &argc, argv);
-  draw_fitresult(fitter);
+  if(opt.count("pdgshift"))
+  {
+    ESHIFT = MTAU;
+    std::cout << "Shift the graphic with " << ESHIFT << "  MeV " << endl;
+  }
+  draw_fitresult(fitter, ESHIFT);
 
   if(!opt.count("exit")) theApp.Run();
   return 0;

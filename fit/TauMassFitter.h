@@ -17,6 +17,10 @@
  */
 #ifndef IBN_TAUMASS_FITTER_H
 #define IBN_TAUMASS_FITTER_H
+#include <vector>
+#include <list>
+#include <chrono>
+
 #include <Minuit2/MnUserParameters.h>
 #include <Minuit2/FCNBase.h>
 #include <Minuit2/MnMigrad.h>
@@ -25,7 +29,6 @@
 #include <Minuit2/MnPrint.h>
 #include <Minuit2/FunctionMinimum.h>
 
-#include <list>
 
 #include "../ScanPoint.h"
 
@@ -74,7 +77,7 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
     }
     if(std::isnan(chi2)) 
 		{
-			cout << "Bad chi2 " << chi2 << endl;
+			//cout << "Bad chi2 " << chi2 << endl;
 			return 1e100;
 		}
     return chi2;
@@ -121,6 +124,7 @@ TauMassFitter2 * TAUMASSFITTER;
 
 class TauMassFitter2
 {
+  std::unique_ptr<TMinuit> minuit;
   std::vector<ScanPoint_t> SP;
   struct parinfo_t
   {
@@ -133,21 +137,38 @@ class TauMassFitter2
     bool limited;
   };
 
+
   std::vector<parinfo_t> inipar; //initial parameter value
   std::vector<parinfo_t> minpar; //optimal parameter value
 
+
+  public:
+
+  bool isminos=false;
+  ibn::valer<double> DM;
+  ibn::valer<double> M;
+  ibn::valer<double> EPS;
+  ibn::valer<double> BG;
+  //negative and positive errors for parameters
+  std::pair<double,double> errDM;
+  std::pair<double,double> errEPS;
+  std::pair<double,double> errBG;
+  double CHI2;
+  int NDF;
+
   TauMassFitter2(void)
   {
-    inipar.push_back(  {"M", 0, 0.1, -1, +1, false, true} );
-    inipar.push_back(  {"EPS", 0.06, 0.1, 0, 1, false, true} );
-    inipar.push_back(  {"BG", 0.3, 1, 0, 100, false, true} );
+    inipar.push_back(  {"M"   , 0    , 0.1 , -1 , +1  , false , true} );
+    inipar.push_back(  {"EPS" , 0.06 , 0.1 , 0  , 1   , false , true} );
+    inipar.push_back(  {"BG"  , 0  , 0.1  , 0  , 5 , false , true} );
   }
 
 
   //observed cross section
-  double sigma_obs(double E, double Sw, double m, double eps, double bg)
+  double sigma_obs(double E, double Sw, double m, double eps, double bg, double effcor=1.0)
   {
-    return sigma_total(2*E, Sw, m, 1e-10)*eps + bg;
+    double sigma = sigma_total(2*E, Sw, m, 1e-10);
+    return sigma*eps*effcor + bg;
   }
 
   double log_likelyhood(double nu, double N)
@@ -157,36 +178,83 @@ class TauMassFitter2
     return -(nu - N + N*log(std::max(N,1.0)/nu));
   }
 
-  double CHI2(double m, double eps, double bg)
+  double GetChi2(double m, double eps, double bg)
   {
     double chi2 = 0;
-    //int i = 0;
     for(auto & p: SP)
     {
       //expected number of events for estimated parameters
       double E = p.energy.value;
       double S = p.energy_spread.value;
       double L = p.luminosity.value;
-      double nu = sigma_obs(E, S,  MTAU+m, eps, bg);
+      double nu = L*sigma_obs(E, S,  MTAU+m, eps, bg, p.effcor);
       chi2 += -2*log_likelyhood(nu, p.Ntt);
-     // i++;
     }
-    if(!std::isnormal(chi2)) chi2=1e100;
+    //if(!std::isnormal(chi2)) chi2=1e100;
     return chi2;
   }
 
   static void fcn(Int_t& n, Double_t*, Double_t&f, Double_t*par, Int_t)
   {
-    f = TAUMASSFITTER->CHI2(par[0],par[1],par[2]);
+    f = TAUMASSFITTER->GetChi2(par[0],par[1],par[2]);
   }
 
+  void Fit(void)
+  {
+    minuit.reset(new TMinuit(inipar.size()));
+    int i=0;
+    for( auto & p : inipar)
+    {
+      minuit->DefineParameter(i, p.name.c_str(), p.value,  p.error, p.min , p.max);
+      i++;
+    }
+    TAUMASSFITTER = this;
+    minuit->SetFCN(TauMassFitter2::fcn);
+    isminos = false;
+    minuit->Migrad();
+    minuit->mnhess();
+    minuit->mnmatu(1);
+    minuit->mnprin(4,0);
+    NDF = minuit->GetNumFreePars();
+
+    minuit->GetParameter(0, DM.value,  DM.error);
+    minuit->GetParameter(1, EPS.value, EPS.error);
+    minuit->GetParameter(2, BG.value,  BG.error);
+    M.value = DM.value + MTAU;
+    M.error = DM.error;
+    CHI2 = GetChi2(DM.value, EPS.value, BG.value);
+  }
+
+  void Fit(const std::list<ScanPoint_t> & sp)
+  {
+    SP.reserve(sp.size());
+    for(auto & p : sp) SP.push_back(p);
+    Fit();
+  }
   void Fit(const std::vector<ScanPoint_t> & sp)
   {
     SP = sp;
-    TMinuit minuit(3);
-    TAUMASSFITTER = this;
-    minuit.SetFCN(TauMassFitter2::fcn);
+    Fit();
   }
   
+  list<ScanPoint_t>  GetData(void)
+  {
+    list<ScanPoint_t> spl;
+    for(auto & p: SP ) spl.push_back(p);
+    return spl;
+  }
+  //Calculate minos errors
+  void Minos(void) 
+  {
+    isminos = true;
+    double eparab, gcc;
+    minuit->mnmnos();
+    minuit->mnerrs(0, errDM.second, errDM.first,eparab, gcc);
+    //std::cout << "M : " << errDM.first << " " << errDM.second << "  " << eparab << "  " << gcc << endl;
+    minuit->mnerrs(1, errEPS.second, errEPS.first,eparab, gcc);
+    //std::cout << "EPS : " << errEPS.first << " " << errEPS.second << "  " << eparab << "  " << gcc << endl;
+    minuit->mnerrs(2, errBG.second, errBG.first,eparab, gcc);
+    //std::cout << "BG : " << errBG.first << " " << errBG.second << "  " << eparab << "  " << gcc << endl;
+  }
 };
 #endif //TAUMASS_FITTER

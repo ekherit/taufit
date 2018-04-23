@@ -11,3 +11,5 @@ vp/*.so*
 vp/*.a
 old
 *.txt
+*.pdf
+*.root
