@@ -23,6 +23,8 @@
 #include <fmt/printf.h>
 #include <TSpline.h>
 
+//#define PRINT_SPLINE_RESULT 
+
 template<class Function>
 TSpline3 * interpolate(const Function & f, double xmin, double xmax, double precision=1e-5)
 {
@@ -49,7 +51,6 @@ TSpline3 * interpolate(const Function & f, double xmin, double xmax, double prec
       {
         y2[i] = it->second; //just use cache value
       }
-      //cout << x2[i] << " " << y2[i] << endl;
     }
     for(int i=0;i<N1+1;i++) 
     {
@@ -68,12 +69,15 @@ TSpline3 * interpolate(const Function & f, double xmin, double xmax, double prec
 
   auto ita = cache_table.begin();
   auto itb = --cache_table.end();
+#ifdef PRINT_SPLINE_RESULT
   fmt::printf("%18s %18s %18s %20s %8s\n","a","b","f(a)","Δmax","b-a");
+#endif
   while(itb!=cache_table.end())
   {
     double a = ita->first;
     double b = itb->first;
     double max_diff = splineit(a,b);
+#ifdef PRINT_SPLINE_RESULT
     fmt::printf("%18.9f %18.9f %18.9f %20.9f %8.3f\n",
         a, 
         b, 
@@ -81,6 +85,7 @@ TSpline3 * interpolate(const Function & f, double xmin, double xmax, double prec
         max_diff,
         b-a
         );
+#endif
     if ( max_diff > precision )
     {
       int i = 0;
@@ -103,6 +108,8 @@ TSpline3 * interpolate(const Function & f, double xmin, double xmax, double prec
     i++;
   }
   auto spline = new TSpline3("spline", &X[0],&Y[0], X.size());
+
+#ifdef PRINT_SPLINE_RESULT
     cout << "Spline result:" << endl;
     fmt::printf("%5s %18s %18s %18s %18s %18s\n", 
         "#",
@@ -123,5 +130,6 @@ TSpline3 * interpolate(const Function & f, double xmin, double xmax, double prec
           (Y[i]-spline->Eval(X[i]))/Y[i]
           );
     }
+#endif
   return spline;
 };
