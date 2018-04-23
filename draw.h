@@ -24,7 +24,11 @@
 
 #include <TGraphErrors.h>
 #include <TGraph.h>
-#include "TF1.h"
+#include <TF1.h>
+#include <TCanvas.h>
+#include <TLatex.h>
+#include <TMultiGraph.h>
+#include <TAxis.h>
 
 #include "ScanPoint.h"
 

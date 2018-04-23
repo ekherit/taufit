@@ -28,6 +28,7 @@
 #include <sstream>
 #include <fstream>
 #include <regex>
+#include <boost/format.hpp>
 
 using namespace std;
 enum 
@@ -44,10 +45,10 @@ struct ScanPoint_t
   ibn::valer<double> energy; //beam energy
   ibn::valer<double> energy_spread; //center of mass energy spread
   ibn::valer<double> luminosity; //luminosity
-  double Ntt; //number of selected tau pair
-  double Ngg; //number of gamma-gamma events
-  double Nee; //number of Bhabha events
-  double effcor; //correction to registration efficiency
+  double Ntt=0.0; //number of selected tau pair
+  double Ngg=1.0; //number of gamma-gamma events
+  double Nee=1.0; //number of Bhabha events
+  double effcor=1.0; //correction to registration efficiency
 };
 
 std::list<ScanPoint_t> read_data(std::string fname, double sigmaW_mtauPDG) 
@@ -114,6 +115,23 @@ std::list<ScanPoint_t> read_data(std::string fname, double sigmaW_mtauPDG)
   //sort by energy order
   SPL.sort([](ScanPoint_t & p1, ScanPoint_t &p2) { return p1.energy.value < p2.energy.value; });
   return SPL;
+}
+
+void print(const std::list<ScanPoint_t> & SPL) 
+{
+  std::cout << boost::format("%6s%24s%15s%15s%15s%15s")%"POINT"%"E[MeV]"%"DELTA[MeV]"%"LUM[1/pb]"%"EVENT"%"EFCOR" << std::endl; 
+  int i = 0;
+  for (auto &sp : SPL)
+  {
+    std::cout << boost::format("%6d%15.3f +- %5.3f%15.3f%15.3f%15d%15.4f") 
+      % (i+1) 
+      % sp.energy.value % sp.energy.error 
+      % sp.energy_spread.value 
+      % sp.luminosity.value 
+      % sp.Ntt
+      % sp.effcor << std::endl;
+    i++;
+  };
 }
 
 #endif

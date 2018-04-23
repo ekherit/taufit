@@ -142,6 +142,8 @@ int main(int argc, char ** argv)
   po::options_description opt_desc("Allowed options");
   int opt_minos;
   double ESHIFT=0;
+  double bg,eps;
+  double cbs_energy_error=0.1;
   opt_desc.add_options()
     ("help,h","Print this help")
     ("input", po::value<std::string>(&INPUT_FILE)->default_value("scan.txt"), "File with data")
@@ -166,6 +168,10 @@ int main(int argc, char ** argv)
     ("filter",po::value<std::string>(&FILTER),"Regex to filter the data")
     ("minos", "Calculate minos errors" )
     ("pdgshift", "Shift energy drawing on PDG mass value")
+    ("sim", "Simulation using scenario")
+    ("bg", po::value<double>(&bg)->default_value(0.3), "Background, pb")
+    ("eps", po::value<double>(&eps)->default_value(0.06), "Registration efficiency")
+    ("cbs-energy-error",po::value<double>(&cbs_energy_error), "Energy measurement error")
     ;
   po::positional_options_description pos;
   pos.add("input",-1);
@@ -189,7 +195,34 @@ int main(int argc, char ** argv)
 
   double Sw = opt["spread"].as<double>();
   if(opt.count("novp")) IS_VP_COR=false;
-  std::list<ScanPoint_t> SPL = read_data(INPUT_FILE, Sw);
+
+
+  std::list<ScanPoint_t> SPL;
+  if(opt.count("sim"))
+  {
+    std::ifstream scenario_file(INPUT_FILE);
+    if(!scenario_file) { cerr << "Unable to open scenario file: " << INPUT_FILE << endl; return -1;}
+    ScanPoint_t sp;
+    TRandom R;
+    while(scenario_file >> sp.n >>  sp.energy.value >> sp.energy_spread.value >>  sp.luminosity.value >> sp.Ntt)
+    {
+      sp.energy.value += MTAU;
+      sp.energy.error = cbs_energy_error;
+      double sigma = sigma_total(2*sp.energy.value, sp.energy_spread.value,  MTAU, 1e-10)*eps + bg;
+      sp.energy.value = R.Gaus(sp.energy.value, cbs_energy_error*0.5);
+      double mu = sigma*sp.luminosity.value;
+      sp.Ntt = R.Poisson(mu);
+      //std::cout << "E = " << sp.energy.value << " L = " << sp.luminosity.value <<  "  sigma_obs " << sigma << "  Ntt = " << sp.Ntt << endl;
+      SPL.push_back(sp);
+    }
+    print(SPL);
+  }
+  else 
+  {
+    SPL = read_data(INPUT_FILE, Sw);
+  }
+
+
 
   if(opt.count("correct-energy"))
   {
