@@ -22,5 +22,5 @@ include $(wildcard *.d)
 cleanall: clean
 	rm -f *.d
 clean: 
-	rm -f *.o $(Name)* libvp.a
+	rm -f *.o $(Name)* libvp.a *.d
 		
