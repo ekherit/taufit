@@ -179,6 +179,7 @@ int main(int argc, char ** argv)
     ("jpsi-spread", po::value<double>(&jpsi_spread), "Energy spread on J/psi, MeV")
     ("tau-spread", po::value<double>(&tau_spread), "Energy spread on tau threshold, MeV")
     ("psip-spread", po::value<double>(&psip_spread), "Energy spread on psi(2S), MeV")
+    ("free-energy", "Free energy in scan points")
     ;
   po::positional_options_description pos;
   pos.add("input",-1);
@@ -327,6 +328,8 @@ int main(int argc, char ** argv)
   }
 
   TauMassFitter2 fitter;
+  if(opt.count("free-energy")) fitter.SetFreeEnergy(true);
+  else fitter.SetFreeEnergy(false);
   fitter.Fit(SPL);
   if(opt.count("minos")) fitter.Minos();
   print_result(std::cout, fitter,"# ");

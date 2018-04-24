@@ -92,7 +92,7 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
     using namespace ROOT::Minuit2;
     MnMigrad migrad(*this, inipar);
     FunctionMinimum minimum = migrad();
-    std::cout << minimum << std::endl;
+    //std::cout << minimum << std::endl;
     minpar=minimum.UserParameters();
     DM =ibn::valer<double>(minpar.Value(0), minpar.Error(0));
     EPS=ibn::valer<double>(minpar.Value(1), minpar.Error(1));
@@ -183,7 +183,11 @@ class TauMassFitter2
       double E = p.energy.value;
       double S = p.energy_spread.value;
       double L = p.luminosity.value;
-      if(par != nullptr) E+=par[i];
+      if(par != nullptr) 
+      {
+        //std::cout  << i << "  " << par[i] << std::endl;
+        E+=par[i];
+      }
       double nu = L*sigma_obs(E, S,  MTAU+m, eps, bg, p.effcor);
       chi2 += -2*log_likelyhood(nu, p.Ntt);
       i++;
@@ -233,15 +237,19 @@ class TauMassFitter2
     minuit->mnhess();
     minuit->mnmatu(1);
     minuit->mnprin(4,0);
-    NDF = SP.size() - minuit->GetNumFreePars();
+    if(is_free_energy) NDF = 2*SP.size() - minuit->GetNumFreePars();
+    else NDF = SP.size() - minuit->GetNumFreePars();
 
+    //std::cout << "minuit->GetNumPars()  = " << minuit->GetNumPars() << std::endl;
     minpar.resize(minuit->GetNumPars());
     for(int i=0;i<minpar.size();i++) 
     {
+      if(i<inipar.size()) minpar[i].name = inipar[i].name;
       minuit->GetParameter(i, minpar[i].value, minpar[i].error);
       minpar[i].min = -minpar[i].error;
       minpar[i].max = minpar[i].error;
     }
+    //std::cout << "minpar0 = " << minpar[0].value << " 1=" << minpar[1].value << "  2=" << minpar[2].value << endl;
     CHI2 = GetChi2(minpar[0].value, minpar[1].value, minpar[2].value);
   }
 
@@ -250,6 +258,7 @@ class TauMassFitter2
   const parinfo_t & operator()(std::string nm) 
   {
     auto & p =  *find_if(minpar.begin(), minpar.end(), [&nm](const parinfo_t & p) { return  p.name == nm; } );
+    //std::cout << "in operator: " << p.name << "  " << nm << std::endl;
     return p;
   };
 
@@ -286,6 +295,11 @@ class TauMassFitter2
 
   void Hesse(void)
   {
+  }
+
+  void SetFreeEnergy(bool b=true)
+  {
+    is_free_energy = b;
   }
 };
 #endif //TAUMASS_FITTER

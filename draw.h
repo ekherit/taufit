@@ -161,6 +161,7 @@ void draw_fitresult(TauMassFitter2 & fitter, double MSHIFT=0)
 	TCanvas * sigma_c = new TCanvas("sigma", "sigma", 1.2*640,1.2*480); 
 	sigma_c->SetGrid();
   TMultiGraph * mg = new TMultiGraph;
+  std::cout << "in draw_fit_result: " << MTAU+fitter("M").value << "  " << fitter("EPS").value << "  " << fitter("BG").value <<endl;
 	TGraph * fit_gr = SigmaGraph(fitter.GetData(), MTAU+fitter("M").value, fitter("EPS").value, fitter("BG").value,200);
   TGraph * data_gr = DataGraph(fitter.GetData(),"tit");
   TGraphErrors * diff_graph = new TGraphErrors;
