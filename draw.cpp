@@ -205,8 +205,8 @@ void draw_fitresult(TauMassFitter2 & fitter, double MSHIFT)
   y=v.back();
 
   char texbuf[1024];
-  if(fitter.isminos) sprintf(texbuf,"M_{#tau} = %8.3f_{ %+4.2f}^{%+4.2f} MeV", fitter("M").value+MTAU, fitter("M").min,fitter("M").max);
-  else sprintf(texbuf,"M_{#tau} = %8.3f #pm %4.2f MeV", fitter("M").value+MTAU, fitter("M").error);
+  if(fitter.isminos) sprintf(texbuf,"M_{#tau} = %8.3f_{ %+5.3f}^{%+5.3f} MeV", fitter("M").value+MTAU, fitter("M").min,fitter("M").max);
+  else sprintf(texbuf,"M_{#tau} = %8.3f #pm %5.3f MeV", fitter("M").value+MTAU, fitter("M").error);
   TLatex * Mtex = new TLatex(x,y,texbuf);
   //TLatex * Mtex = new TLatex(x,y,fmt::format("M_{#tau} = %8.3f_{ %+4.2f}^{%+4.2f} MeV", fitter.M.value, fitter.errDM.first,fitter.errDM.second).c_str());
   Mtex->Draw();
@@ -217,7 +217,7 @@ void draw_fitresult(TauMassFitter2 & fitter, double MSHIFT)
   TLatex *BGtex = new TLatex(x,y*0.8,texbuf);
   BGtex->Draw();
 
-  sprintf(texbuf,"M_{#tau}-M_{PDG} = %5.3f #pm %4.2f MeV ",fitter("M").value , sqrt(pow(fitter("M").error,2.0) + DMTAU_PDG*DMTAU_PDG));
+  sprintf(texbuf,"M_{#tau}-M_{PDG} = %5.3f #pm %5.3f MeV ",fitter("M").value , sqrt(pow(fitter("M").error,2.0) + DMTAU_PDG*DMTAU_PDG));
   TLatex * DMtex = new TLatex(1783-MSHIFT,y*0.3,texbuf);
   DMtex->Draw();
   
