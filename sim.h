@@ -63,5 +63,16 @@ class ScanSimulator
       }
       return SPL;
     }
+    void SetTauMass(double value) { tau_mass.value = value; }
+    void SetTauMassError(double error) { tau_mass.error = error; }
+
+    void SetEfficiency(double value) { eps.value = value; }
+    void SetEfficiencyError(double error) { eps.error = error; }
+
+    void SetBackground(double value) { bg.value = value; }
+    void SetBackgroundError(double error) { bg.error = error; }
+
+    void SetEnergySpread(double value) { energy_spread.value = value; }
+    void SetEnergySpreadError(double error) { energy_spread.error = error; }
 };
 

@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <vector>
 #include <algorithm>
+#include <chrono>
 
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
@@ -34,6 +35,7 @@
 #include <TAxis.h>
 #include <TLatex.h>
 #include <TRandom.h>
+#include <TSystem.h>
 
 #include <regex>
 
@@ -53,6 +55,7 @@ TROOT root("Fit tau mass","Fit tau mass", initfuncs);
 
 #include "draw.h"
 #include "sim.h"
+#include "fit.h"
 
 
 unsigned DEBUG=0;
@@ -156,6 +159,7 @@ int main(int argc, char ** argv)
   double sim_tau_spread;
   double sim_psip_spread;
   double sim_energy_spread;
+  long sim_samples=1; //number of simulation samples
 
   opt_desc.add_options()
     ("help,h","Print this help")
@@ -182,6 +186,7 @@ int main(int argc, char ** argv)
     ("minos", "Calculate minos errors" )
     ("pdgshift", "Shift energy drawing on PDG mass value")
     ("sim", "Simulation using scenario")
+    ("samples", po::value<long>(&sim_samples), "Number of simulations")
     ("bg", po::value<double>(&bg)->default_value(0.3), "Background, pb")
     ("eps", po::value<double>(&eps)->default_value(0.06), "Registration efficiency")
     ("cbs-energy-error",po::value<double>(&cbs_energy_error), "Energy measurement error")
@@ -212,6 +217,13 @@ int main(int argc, char ** argv)
     return 0;
   }
 
+  if(opt.count("pdgshift"))
+  {
+    ESHIFT = MTAU;
+    std::cout << "Shift the graphic with " << ESHIFT << "  MeV " << endl;
+  }
+
+	TApplication theApp("tau", &argc, argv);
 
   //double Sw = opt["spread"].as<double>();
   if(opt.count("novp")) IS_VP_COR=false;
@@ -243,9 +255,18 @@ int main(int argc, char ** argv)
     std::cout << "Registration efficiency in simulation: " << eps << endl;
     std::list<ScanPoint_t> scenario = read_scenario(INPUT_FILE);
     print(scenario);
-    ScanSimulator simulator(scenario);
-    SPL = simulator.simulate();
-    print(SPL);
+    ScanSimulator simulator(scenario, std::chrono::system_clock::now().time_since_epoch().count());
+    for(int i=0;i<sim_samples;i++)
+    {
+      SPL = simulator.simulate();
+      print(SPL);
+      Fitter fitter;
+      fitter.energy_shift = ESHIFT;
+      fitter.Fit(SPL);
+      gSystem->ProcessEvents();
+    }
+    if(!opt.count("exit")) theApp.Run();
+    return 0;
   }
   else 
   {
@@ -350,6 +371,12 @@ int main(int argc, char ** argv)
     }
   }
 
+
+  Fitter fitter;
+  fitter.energy_shift = ESHIFT;
+  fitter.Fit(SPL);
+
+  /*
   TauMassFitter2 fitter;
   if(opt.count("free-energy")) fitter.SetFreeEnergy(true);
   else fitter.SetFreeEnergy(false);
@@ -375,38 +402,12 @@ int main(int argc, char ** argv)
       );
   result_file << buf << endl;
   result_file.close();
+  */
 
-	TApplication theApp("tau", &argc, argv);
-  if(opt.count("pdgshift"))
-  {
-    ESHIFT = MTAU;
-    std::cout << "Shift the graphic with " << ESHIFT << "  MeV " << endl;
-  }
-  draw_fitresult(fitter, ESHIFT);
+  //draw_fitresult(fitter, ESHIFT);
 
   if(!opt.count("exit")) theApp.Run();
   return 0;
 }
 
-void print_result(std::ostream & os, TauMassFitter2 & fitter, std::string comment)
-{
-  char buf[1024];
-  sprintf(buf, "MTAU   = %8.3f +- %5.3f MeV  = %8.3f %+5.3f %+5.3f MeV", fitter("M").value+MTAU , fitter("M").error, fitter("M").value+MTAU, fitter("M").min,fitter("M").max);
-  os << comment << buf << endl;
-
-  sprintf(buf, "M-MPDG = %8.3f +- %5.3f MeV", fitter("M").value, fitter("M").error);
-  os << comment << buf << endl;
-  
-  sprintf(buf,"EPS = %3.1f %+3.1f %+3.1f %%", fitter("EPS").value*100, fitter("EPS").min*100,fitter("EPS").max*100);
-  os << comment << buf << endl;
-
-  sprintf(buf,"BG = %4.2f %+4.2f %+4.2f pb", fitter("BG").value, fitter("BG").min, fitter("BG").max);
-  os << comment << buf << endl;
-
-  sprintf(buf,"chi2/ndf = %6.5f/%d", fitter.CHI2, fitter.NDF);
-  os << comment << buf << endl;
-
-  sprintf(buf,"P(chi2,ndf) = %3.1f", TMath::Prob(fitter.CHI2,fitter.NDF));
-  os << comment << buf << endl;
-}
 
