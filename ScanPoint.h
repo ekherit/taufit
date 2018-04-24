@@ -120,6 +120,23 @@ inline std::list<ScanPoint_t> read_data(std::string fname, double sigmaW_mtauPDG
   return SPL;
 }
 
+
+inline std::list<ScanPoint_t> read_scenario(std::string fname) 
+{
+  std::list<ScanPoint_t> SPL;
+
+  std::ifstream scenario_file(fname);
+  if(!scenario_file) { cerr << "Unable to open scenario file: " << fname << std::endl; exit(-1);}
+  ScanPoint_t sp;
+  while(scenario_file >> sp.n >>  sp.energy.value >> sp.energy_spread.value >>  sp.luminosity.value >> sp.Ntt)
+  {
+    SPL.push_back(sp);
+  }
+  return SPL;
+}
+
+
+
 inline void print(const std::list<ScanPoint_t> & SPL, std::ostream & os=std::cout) 
 {
   //os << boost::format("%6s%24s%15s%15s%15s%15s")%"point"%"e[mev]"%"delta[mev]"%"lum[1/pb]"%"event"%"efcor" << std::endl; 
