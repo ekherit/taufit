@@ -121,7 +121,7 @@ class TauMassFitter :  public  ROOT::Minuit2::FCNBase
 
 class TauMassFitter2;
 
-TauMassFitter2 * TAUMASSFITTER;
+extern TauMassFitter2 * TAUMASSFITTER;
 
 class TauMassFitter2
 {

@@ -82,7 +82,7 @@ inline double Fr(double v)
 
 
 
-double hsub(double lambda, double t, double x, double v, double z)
+inline double hsub(double lambda, double t, double x, double v, double z)
 {
   complex<double> il(0,lambda);
   complex<double> a(t, z*x/v);
@@ -92,7 +92,7 @@ double hsub(double lambda, double t, double x, double v, double z)
   return im*(1.0 + 0.5*_x2)*sqrt(1.0 - _x2)*_x;
 };
 
-double hint2(double v)
+inline double hint2(double v)
 {
   double a[2] = {0,1.0};
   double b[2] = {1000,1000};

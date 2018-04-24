@@ -204,7 +204,7 @@ void fit(double Ltot=100, double eps=0.06, double bg=0.3, double Sw=0.922, doubl
   minuit.DefineParameter(0 , "dE1" , -5   , 0   , 0  , 0);
   minuit.DefineParameter(1 , "dE2" , -0.3, 0.1, -5 , 3.5);
   minuit.DefineParameter(2 , "dE4" , 3.5  , 0   , 0  , 0);
-  minuit.DefineParameter(3 , "dE5" , 15   , 0   , 0  , 0);
+  minuit.DefineParameter(3 , "dE5" , 23   , 0   , 0  , 0);
   minuit.DefineParameter(4 , "L"   , Ltot , 0   , 0  , 0);
   minuit.DefineParameter(5 , "L1"  , 0.15,  0.08,  0  , 1);
   minuit.DefineParameter(6 , "L2"  , 0.35,  0.06, 0  , 1);

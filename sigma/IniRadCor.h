@@ -99,17 +99,17 @@ class FReg2x
 };
 
 // Функции для руута
-double F_reg1(double *x, double *p)
+inline double F_reg1(double *x, double *p)
 {
 	return F_reg1(*p,*x);
 }
 
-double F_reg_ln_x(double *x, double *p)
+inline double F_reg_ln_x(double *x, double *p)
 {
 	return F_reg_ln_x(*x);
 }
 
-double F2_reg_x(double *x, double *p)
+inline double F2_reg_x(double *x, double *p)
 {
 	return F2_reg_x(*x,p[0],p[1],p[2]);
 } 

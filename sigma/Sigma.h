@@ -484,7 +484,7 @@ inline double Sigma ( double s, double mt)
   return sig;
 } 
 
-double Gauss( double w, double delta)
+inline double Gauss( double w, double delta)
 {
 	return exp(- sq(w/delta)/2. )/delta/sqrt( 2*M_PI );
 }

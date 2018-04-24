@@ -39,7 +39,8 @@ enum
   LUM_GG,
   LUM_BB
 };
-unsigned LUMINOCITY=LUM_DEFAULT;
+
+extern unsigned LUMINOCITY;
 
 struct ScanPoint_t
 {
@@ -53,7 +54,7 @@ struct ScanPoint_t
   double effcor=1.0; //correction to registration efficiency
 };
 
-std::list<ScanPoint_t> read_data(std::string fname, double sigmaW_mtauPDG) 
+inline std::list<ScanPoint_t> read_data(std::string fname, double sigmaW_mtauPDG) 
 {
   std::list<ScanPoint_t> SPL;
   ifstream file(fname);
@@ -119,7 +120,7 @@ std::list<ScanPoint_t> read_data(std::string fname, double sigmaW_mtauPDG)
   return SPL;
 }
 
-void print(const std::list<ScanPoint_t> & SPL, std::ostream & os=std::cout) 
+inline void print(const std::list<ScanPoint_t> & SPL, std::ostream & os=std::cout) 
 {
   //os << boost::format("%6s%24s%15s%15s%15s%15s")%"point"%"e[mev]"%"delta[mev]"%"lum[1/pb]"%"event"%"efcor" << std::endl; 
   os << fmt::format("{:5}{:>24}{:>15}{:>15}{:>15}{:>15}", 

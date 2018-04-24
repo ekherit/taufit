@@ -51,12 +51,11 @@ TROOT root("Fit tau mass","Fit tau mass", initfuncs);
 #include <ibn/timer.h>
 #include <ibn/averager.h>
 
-
-//#include "fit/FitFunctions.h"
 #include "draw.h"
 
 
 unsigned DEBUG=0;
+unsigned LUMINOCITY=LUM_DEFAULT;
 std::string INPUT_FILE="scan.txt";
 std::string OUTPUT_FILE="fitscan.txt";
 std::string EFFCOR_FILENAME="effcor.dat";
@@ -65,6 +64,7 @@ double ENERGY_VARIATION=0.01;
 double EFFICIENCY_VARIATION=0.005;
 std::string RESULT_FILE="fitresult.txt";
 int SEED=0;
+TauMassFitter2 * TAUMASSFITTER = nullptr;
 
 void print_result(std::ostream & , TauMassFitter2 & , string comment="");
 

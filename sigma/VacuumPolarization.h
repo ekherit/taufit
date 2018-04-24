@@ -14,7 +14,7 @@ extern "C"
 #include "vplepton.h"
 using namespace std;
 
-bool VP_LIB_INIT=false;
+static bool VP_LIB_INIT=false;
 
 inline double Vp(double s, double mtau = MTAU)
 {
@@ -193,7 +193,7 @@ inline double Vpol(double g2)
 }
 
 
-double vp_ROOT(double *x, double *p)
+inline double vp_ROOT(double *x, double *p)
 {
   double E=*x,S;
   double ReH,ImH,ReL,ImL;
