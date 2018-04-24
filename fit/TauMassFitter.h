@@ -147,7 +147,7 @@ class TauMassFitter2
   public:
 
   bool isminos=false;
-  bool is_free_energy=true;
+  bool is_free_energy=false;
   double CHI2;
   int NDF;
 
@@ -173,17 +173,20 @@ class TauMassFitter2
     return -(nu - N + N*log(std::max(N,1.0)/nu));
   }
 
-  double GetChi2(double m, double eps, double bg)
+  double GetChi2(double m, double eps, double bg, double * par=nullptr)
   {
     double chi2 = 0;
+    int i=0;
     for(auto & p: SP)
     {
       //expected number of events for estimated parameters
       double E = p.energy.value;
       double S = p.energy_spread.value;
       double L = p.luminosity.value;
+      if(par != nullptr) E+=par[i];
       double nu = L*sigma_obs(E, S,  MTAU+m, eps, bg, p.effcor);
       chi2 += -2*log_likelyhood(nu, p.Ntt);
+      i++;
     }
     //if(!std::isnormal(chi2)) chi2=1e100;
     return chi2;
@@ -191,13 +194,17 @@ class TauMassFitter2
 
   static void fcn(Int_t& n, Double_t*, Double_t&f, Double_t*par, Int_t)
   {
-    f = TAUMASSFITTER->GetChi2(par[0],par[1],par[2]);
     if(TAUMASSFITTER->is_free_energy)
     {
+      f = TAUMASSFITTER->GetChi2(par[0],par[1],par[2], &par[3]);
       for(int i=0;i<TAUMASSFITTER->SP.size();++i)
       {
-        f+=pow( (TAUMASSFITTER->SP[i].energy.value - par[3+i])/TAUMASSFITTER->SP[i].energy.error, 2.0);
+        f+=pow( par[3+i]/TAUMASSFITTER->SP[i].energy.error, 2.0);
       }
+    }
+    else
+    {
+      f = TAUMASSFITTER->GetChi2(par[0],par[1],par[2]);
     }
   }
 
