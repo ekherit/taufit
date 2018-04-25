@@ -160,6 +160,7 @@ int main(int argc, char ** argv)
   double sim_psip_spread;
   double sim_energy_spread;
   long sim_samples=1; //number of simulation samples
+  long draw_samples=1;
 
   opt_desc.add_options()
     ("help,h","Print this help")
@@ -187,6 +188,7 @@ int main(int argc, char ** argv)
     ("pdgshift", "Shift energy drawing on PDG mass value")
     ("sim", "Simulation using scenario")
     ("samples", po::value<long>(&sim_samples), "Number of simulations")
+    ("draw-samples", po::value<long>(&draw_samples), "Number of draw samples -1 - infinity")
     ("bg", po::value<double>(&bg)->default_value(0.3), "Background, pb")
     ("eps", po::value<double>(&eps)->default_value(0.06), "Registration efficiency")
     ("cbs-energy-error",po::value<double>(&cbs_energy_error), "Energy measurement error")
@@ -255,13 +257,16 @@ int main(int argc, char ** argv)
     std::cout << "Registration efficiency in simulation: " << eps << endl;
     std::list<ScanPoint_t> scenario = read_scenario(INPUT_FILE);
     print(scenario);
-    ScanSimulator simulator(scenario, std::chrono::system_clock::now().time_since_epoch().count());
+    //ScanSimulator simulator(scenario, std::chrono::system_clock::now().time_since_epoch().count());
+    ScanSimulator simulator(scenario, 1);
     for(int i=0;i<sim_samples;i++)
     {
       SPL = simulator.simulate();
+      //SPL.back().Ntt;
       print(SPL);
       Fitter fitter;
       fitter.energy_shift = ESHIFT;
+      if(i>std::max(1L,draw_samples)) { fitter.draw_fit_result=false;}
       fitter.Fit(SPL);
       gSystem->ProcessEvents();
     }
